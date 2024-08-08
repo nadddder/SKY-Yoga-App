@@ -1,19 +1,20 @@
-// screens/WorkoutSelection.tsx
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Button, Image } from 'react-native';
+import React, { useState, useContext } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Button, Image, ImageBackground } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 import { Audio } from 'expo-av';
+import { UserContext } from '../context/UserContext';
 
 const moods = [
   { label: "Calm", subtext: "Low Intensity" },
-  { label: "Balanced", subtext: "Moderate" }, // Modified text
+  { label: "Balanced", subtext: "Moderate" },
   { label: "Pumped up!", subtext: "High Intensity" },
 ];
 
 export default function WorkoutSelection() {
-  const [selectedDuration, setSelectedDuration] = useState({ hour: 0, minute: 0 });
-  const [selectedMood, setSelectedMood] = useState(null);
+  const { user, setUser } = useContext(UserContext);
+  const [selectedDuration, setSelectedDuration] = useState(user.duration || { hour: 0, minute: 0 });
+  const [selectedMood, setSelectedMood] = useState(user.mood || null);
   const [recording, setRecording] = useState(null);
   const [sound, setSound] = useState(null);
   const [isRecording, setIsRecording] = useState(false);
@@ -22,6 +23,7 @@ export default function WorkoutSelection() {
 
   const handleMoodPress = (mood) => {
     setSelectedMood(mood);
+    setUser(prevState => ({ ...prevState, mood: mood.subtext }));
   };
 
   const startRecording = async () => {
@@ -69,78 +71,85 @@ export default function WorkoutSelection() {
   };
 
   const handleInstructMe = () => {
-    // Handle instruct me action here
+    setUser(prevState => ({ ...prevState, duration: selectedDuration }));
+    navigation.navigate('UserSummary');
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.contentContainer}>
-        <Text style={[styles.text, styles.marginTop]}>Select your Workout Details</Text>
-        <View style={styles.pickerContainer}>
-          <Picker
-            selectedValue={selectedDuration.hour}
-            style={styles.picker}
-            onValueChange={(itemValue) => setSelectedDuration({ ...selectedDuration, hour: itemValue })}
-          >
-            {Array.from({ length: 2 }, (_, i) => i).map((value) => (
-              <Picker.Item key={value} label={`${value} hour`} value={value} />
-            ))}
-          </Picker>
-          <Picker
-            selectedValue={selectedDuration.minute}
-            style={styles.picker}
-            onValueChange={(itemValue) => setSelectedDuration({ ...selectedDuration, minute: itemValue })}
-          >
-            {Array.from({ length: 12 }, (_, i) => i * 5).map((value) => (
-              <Picker.Item key={value} label={`${value} min`} value={value} />
-            ))}
-          </Picker>
-        </View>
-        <Text style={[styles.text, styles.marginTop]}>Select your workout mood</Text>
-        <View style={styles.moodBar}>
-          {moods.map((mood, index) => (
-            <TouchableOpacity
-              key={index}
-              onPress={() => handleMoodPress(mood)}
-              style={[
-                styles.moodContainer,
-                selectedMood === mood && styles.selectedMood
-              ]}
+    <ImageBackground source={require('../assets/background.png')} style={styles.background}>
+      <View style={styles.container}>
+        <View style={styles.contentContainer}>
+          <Text style={[styles.text, styles.marginTop]}>Select your Workout Details</Text>
+          <Text style={[styles.text, styles.marginTop]}>Duration</Text>
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={selectedDuration.hour}
+              style={styles.picker}
+              onValueChange={(itemValue) => setSelectedDuration({ ...selectedDuration, hour: itemValue })}
             >
-              <Text style={styles.moodText}>{mood.label}</Text>
-              <Text style={styles.moodSubtext}>{mood.subtext}</Text>
+              {Array.from({ length: 2 }, (_, i) => i).map((value) => (
+                <Picker.Item key={value} label={`${value} hour`} value={value} />
+              ))}
+            </Picker>
+            <Picker
+              selectedValue={selectedDuration.minute}
+              style={styles.picker}
+              onValueChange={(itemValue) => setSelectedDuration({ ...selectedDuration, minute: itemValue })}
+            >
+              {Array.from({ length: 12 }, (_, i) => i * 5).map((value) => (
+                <Picker.Item key={value} label={`${value} min`} value={value} />
+              ))}
+            </Picker>
+          </View>
+          <Text style={[styles.text, styles.marginTop]}>Select your workout mood</Text>
+          <View style={styles.moodBar}>
+            {moods.map((mood, index) => (
+              <TouchableOpacity
+                key={index}
+                onPress={() => handleMoodPress(mood)}
+                style={[
+                  styles.moodContainer,
+                  selectedMood === mood && styles.selectedMood
+                ]}
+              >
+                <Text style={styles.moodText}>{mood.label}</Text>
+                <Text style={styles.moodSubtext}>{mood.subtext}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <View style={styles.recordingContainer}>
+            <Text style={[styles.recordingText, styles.marginTop]}>Anything else you want to share or ask for?</Text>
+            <TouchableOpacity onPress={isRecording ? stopRecording : startRecording}>
+              <Image source={require('../assets/recordingicon.png')} style={styles.recordingIcon} />
             </TouchableOpacity>
-          ))}
+            {sound && !isRecording && (
+              <Button title={isPlaying ? "Pause" : "Play Recording"} onPress={isPlaying ? pauseSound : playSound} />
+            )}
+          </View>
         </View>
-        <View style={styles.recordingContainer}>
-          <Text style={[styles.recordingText, styles.marginTop]}>Anything else you want to share or ask for?</Text>
-          <TouchableOpacity onPress={isRecording ? stopRecording : startRecording}>
-            <Image source={require('../assets/recordingicon.png')} style={styles.recordingIcon} />
-          </TouchableOpacity>
-          {sound && !isRecording && (
-            <Button title={isPlaying ? "Pause" : "Play Recording"} onPress={isPlaying ? pauseSound : playSound} />
-          )}
-        </View>
-      </View>
-      <View style={styles.buttonContainer}>
-        <View style={styles.buttonWrapper}>
-          <Button title="Previous" onPress={handlePrevious} />
-        </View>
-        <View style={styles.buttonWrapper}>
-          <TouchableOpacity style={styles.instructMeButton} onPress={handleInstructMe}>
-            <Text style={styles.instructMeButtonText}>Instruct me!</Text>
-          </TouchableOpacity>
+        <View style={styles.buttonContainer}>
+          <View style={styles.buttonWrapper}>
+            <Button title="Previous" onPress={handlePrevious} />
+          </View>
+          <View style={styles.buttonWrapper}>
+            <TouchableOpacity style={styles.instructMeButton} onPress={handleInstructMe}>
+              <Text style={styles.instructMeButtonText}>Instruct me!</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
-    </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    resizeMode: 'cover',
+  },
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: 'white',
   },
   contentContainer: {
     flex: 1,

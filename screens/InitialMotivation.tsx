@@ -1,14 +1,18 @@
-// screens/InitialMotivation.tsx
-import React, { useState } from 'react';
-import { View, Button, StyleSheet, Text } from 'react-native';
+import React, { useState, useContext } from 'react';
+import { View, Button, StyleSheet, Text, ImageBackground } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import CustomButton from '../components/CustomButton';
+import { UserContext } from '../context/UserContext';
 
 export default function InitialMotivation() {
-  const [selectedOptions, setSelectedOptions] = useState([]);
+  const { user, setUser } = useContext(UserContext);
+  const [selectedOptions, setSelectedOptions] = useState(user.motivations || []);
+
   const navigation = useNavigation();
 
   const handleNext = () => {
+    const subTexts = selectedOptions.map(option => option.split('\n')[1]);
+    setUser(prevState => ({ ...prevState, motivations: subTexts }));
     navigation.navigate('InitialInjuries');
   };
 
@@ -25,59 +29,65 @@ export default function InitialMotivation() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.contentContainer}>
-        <Text style={styles.text}>What is your yoga mission?</Text>
-        <Text style={styles.subText}>(Select all that apply)</Text>
-        {[
-          'Get bendy\nFlexibility', 
-          'Build muscle\nStrength', 
-          'Find peace\nRelaxation', 
-          'Wobble less\nBalance', 
-          'Ease aches\nPain Relief', 
-          'Trim down\nWeight Loss'
-        ].map(option => (
-          <CustomButton
-            key={option}
-            title={option}
-            onPress={() => toggleOption(option)}
-            selected={selectedOptions.includes(option)}
-          />
-        ))}
-      </View>
-      <View style={styles.buttonContainer}>
-        <View style={styles.buttonWrapper}>
-          <Button title="Previous" onPress={handlePrevious} />
+    <ImageBackground source={require('../assets/background.png')} style={styles.background}>
+      <View style={styles.container}>
+        <View style={styles.contentContainer}>
+          <Text style={styles.text}>What is your yoga mission?</Text>
+          <Text style={styles.subText}>(Select all that apply)</Text>
+          {[
+            'Get bendy\nFlexibility', 
+            'Build muscle\nStrength', 
+            'Find peace\nRelaxation', 
+            'Wobble less\nBalance', 
+            'Ease aches\nPain Relief', 
+            'Trim down\nWeight Loss',
+            'Undo Desk Damage\nPosture Correction'
+          ].map(option => (
+            <CustomButton
+              key={option}
+              title={option}
+              onPress={() => toggleOption(option)}
+              selected={selectedOptions.includes(option)}
+            />
+          ))}
         </View>
-        <View style={styles.buttonWrapper}>
-          <Button title="Next" onPress={handleNext} />
+        <View style={styles.buttonContainer}>
+          <View style={styles.buttonWrapper}>
+            <Button title="Previous" onPress={handlePrevious} />
+          </View>
+          <View style={styles.buttonWrapper}>
+            <Button title="Next" onPress={handleNext} />
+          </View>
         </View>
       </View>
-    </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    resizeMode: 'cover',
+  },
   container: {
     flex: 1,
     justifyContent: 'space-between',
     padding: 16,
-    backgroundColor: 'white',
   },
   contentContainer: {
     flex: 1,
     justifyContent: 'center',
   },
   text: {
-    color: 'black', // Ensure the text is visible
+    color: 'black',
     marginBottom: 10,
-    fontSize: 24, // Increased font size for the question
+    fontSize: 24,
     textAlign: 'center',
   },
   subText: {
-    color: 'black', // Ensure the text is visible
+    color: 'black',
     marginBottom: 20,
-    fontSize: 16, // Smaller font size for the description
+    fontSize: 16,
     textAlign: 'center',
   },
   buttonContainer: {

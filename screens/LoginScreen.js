@@ -1,56 +1,64 @@
-import React, { useState } from 'react';
-import { View, TextInput, Button, StyleSheet, Image, Text, Dimensions } from 'react-native';
+import React, { useState, useContext } from 'react';
+import { View, TextInput, Button, StyleSheet, Image, Text, Dimensions, ImageBackground } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { UserContext } from '../context/UserContext';
 
 const screenHeight = Dimensions.get('window').height;
 
 export default function LoginScreen() {
+  const { setUser } = useContext(UserContext);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const navigation = useNavigation();
 
   const handleNext = () => {
-    navigation.navigate('InitialYogaExperience', { name, email });
+    setUser({ name, email });
+    navigation.navigate('InitialYogaExperience');
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.contentContainer}>
-        <Text style={styles.description}>
-          Tell us about you and what kind of Yoga you want to practice, and a professional instructor will record a session for you!
-        </Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Name"
-          value={name}
-          onChangeText={setName}
-          placeholderTextColor="gray"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-          placeholderTextColor="gray"
-        />
-        <Image source={require('../assets/logo.png')} style={styles.logo} />
+    <ImageBackground source={require('../assets/background.png')} style={styles.background}>
+      <View style={styles.container}>
+        <View style={styles.contentContainer}>
+          <Text style={styles.description}>
+            Tell us about you and what kind of Yoga you want to practice, and a professional instructor will record a session for you!
+          </Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Name"
+            value={name}
+            onChangeText={setName}
+            placeholderTextColor="gray"
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            placeholderTextColor="gray"
+          />
+          <Image source={require('../assets/logo.png')} style={styles.logo} />
+        </View>
+        <View style={styles.buttonContainer}>
+          <Button title="Next" onPress={handleNext} />
+        </View>
       </View>
-      <View style={styles.buttonContainer}>
-        <Button title="Next" onPress={handleNext} />
-      </View>
-    </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    resizeMode: 'cover',
+  },
   container: {
     flex: 1,
     justifyContent: 'space-between',
     padding: 16,
-    backgroundColor: 'white',
   },
   contentContainer: {
-    marginTop: screenHeight / 6, // Move content higher
+    marginTop: screenHeight / 6,
     alignItems: 'center',
   },
   input: {
@@ -63,8 +71,8 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   logo: {
-    width: 200, // Adjust as needed
-    height: 200, // Adjust as needed
+    width: 200,
+    height: 200,
     alignSelf: 'center',
     marginBottom: 20,
   },
