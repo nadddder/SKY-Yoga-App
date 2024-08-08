@@ -1,14 +1,17 @@
-// screens/InitialYogaExperience.tsx
-import React, { useState } from 'react';
-import { View, Button, StyleSheet, Text } from 'react-native';
+import React, { useState, useContext } from 'react';
+import { View, Button, StyleSheet, Text, ImageBackground } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import CustomButton from '../components/CustomButton';
+import { UserContext } from '../context/UserContext';
 
 export default function InitialYogaExperience() {
-  const [selectedOption, setSelectedOption] = useState('');
+  const { user, setUser } = useContext(UserContext);
+  const [selectedOption, setSelectedOption] = useState(user.yogaExperience || '');
   const navigation = useNavigation();
 
   const handleNext = () => {
+    const mainText = selectedOption.split('\n')[0];
+    setUser(prevState => ({ ...prevState, yogaExperience: mainText }));
     navigation.navigate('InitialMotivation');
   };
 
@@ -17,51 +20,56 @@ export default function InitialYogaExperience() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.contentContainer}>
-        <Text style={styles.text}>What's your experience with Yoga?</Text>
-        {[
-          'Beginner 1\nJust starting out', 
-          'Beginner 2\nBeen to some classes', 
-          'Intermediate 1\nGot the basics down', 
-          'Intermediate 2\nI can handle almost every pose', 
-          'Advanced\nGive me the hardest you got'
-        ].map(option => (
-          <CustomButton
-            key={option}
-            title={option}
-            onPress={() => setSelectedOption(option)}
-            selected={selectedOption === option}
-          />
-        ))}
-      </View>
-      <View style={styles.buttonContainer}>
-        <View style={styles.buttonWrapper}>
-          <Button title="Previous" onPress={handlePrevious} />
+    <ImageBackground source={require('../assets/background.png')} style={styles.background}>
+      <View style={styles.container}>
+        <View style={styles.contentContainer}>
+          <Text style={styles.text}>What's your experience with Yoga?</Text>
+          {[
+            'Beginner 1\nJust starting out', 
+            'Beginner 2\nBeen to some classes', 
+            'Intermediate 1\nGot the basics down', 
+            'Intermediate 2\nI can handle almost every pose', 
+            'Advanced\nGive me the hardest you got'
+          ].map(option => (
+            <CustomButton
+              key={option}
+              title={option}
+              onPress={() => setSelectedOption(option)}
+              selected={selectedOption === option}
+            />
+          ))}
         </View>
-        <View style={styles.buttonWrapper}>
-          <Button title="Next" onPress={handleNext} />
+        <View style={styles.buttonContainer}>
+          <View style={styles.buttonWrapper}>
+            <Button title="Previous" onPress={handlePrevious} />
+          </View>
+          <View style={styles.buttonWrapper}>
+            <Button title="Next" onPress={handleNext} />
+          </View>
         </View>
       </View>
-    </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    resizeMode: 'cover',
+  },
   container: {
     flex: 1,
     justifyContent: 'space-between',
     padding: 16,
-    backgroundColor: 'white',
   },
   contentContainer: {
     flex: 1,
     justifyContent: 'center',
   },
   text: {
-    color: 'black', // Ensure the text is visible
+    color: 'black',
     marginBottom: 10,
-    fontSize: 24, // Increased font size for the question
+    fontSize: 24,
     textAlign: 'center',
   },
   buttonContainer: {

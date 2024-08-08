@@ -1,4 +1,3 @@
-// navigation/AppNavigator.js
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -8,7 +7,8 @@ import InitialMotivation from '../screens/InitialMotivation';
 import InitialInjuries from '../screens/InitialInjuries';
 import InitialComfortablePoses from '../screens/InitialComfortablePoses';
 import InitialGoalPoses from '../screens/InitialGoalPoses';
-import WorkoutSelection from '../screens/WorkoutSelection'; // Add this import
+import WorkoutSelection from '../screens/WorkoutSelection';
+import UserSummary from '../screens/UserSummary';
 
 const Stack = createStackNavigator();
 
@@ -49,6 +49,11 @@ export default function AppNavigator() {
         <Stack.Screen
           name="WorkoutSelection"
           component={WorkoutSelection}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="UserSummary"
+          component={UserSummary}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>

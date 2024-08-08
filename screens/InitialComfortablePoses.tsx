@@ -1,7 +1,7 @@
-// screens/InitialComfortablePoses.tsx
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Button, Dimensions } from 'react-native';
+import React, { useState, useContext } from 'react';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Button, ImageBackground } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { UserContext } from '../context/UserContext';
 
 const poses = [
   require('../assets/Yoga Pose icons/pose1.png'),
@@ -22,15 +22,22 @@ const poses = [
 ];
 
 export default function InitialComfortablePoses() {
-  const [selectedPoses, setSelectedPoses] = useState([]);
+  const { user, setUser } = useContext(UserContext);
+  const [selectedPoses, setSelectedPoses] = useState(user.comfortablePoses || []);
   const navigation = useNavigation();
 
   const handlePosePress = (index) => {
+    let updatedSelectedPoses;
     if (selectedPoses.includes(index)) {
-      setSelectedPoses(selectedPoses.filter(i => i !== index));
+      updatedSelectedPoses = selectedPoses.filter(i => i !== index);
     } else {
-      setSelectedPoses([...selectedPoses, index]);
+      updatedSelectedPoses = [...selectedPoses, index];
     }
+    setSelectedPoses(updatedSelectedPoses);
+    setUser(prevState => ({
+      ...prevState,
+      comfortablePoses: updatedSelectedPoses.map(i => `pose${i + 1}`),
+    }));
   };
 
   const handleNext = () => {
@@ -42,41 +49,46 @@ export default function InitialComfortablePoses() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.contentContainer}>
-        <Text style={styles.text}>Please select some of the poses you've nailed down before</Text>
-        <View style={styles.grid}>
-          {poses.map((pose, index) => (
-            <TouchableOpacity
-              key={index}
-              onPress={() => handlePosePress(index)}
-              style={[
-                styles.poseContainer,
-                selectedPoses.includes(index) && styles.selectedPose
-              ]}
-            >
-              <Image source={pose} style={styles.poseImage} />
-            </TouchableOpacity>
-          ))}
+    <ImageBackground source={require('../assets/background.png')} style={styles.background}>
+      <View style={styles.container}>
+        <View style={styles.contentContainer}>
+          <Text style={styles.text}>Please select some of the poses you've nailed down before</Text>
+          <View style={styles.grid}>
+            {poses.map((pose, index) => (
+              <TouchableOpacity
+                key={index}
+                onPress={() => handlePosePress(index)}
+                style={[
+                  styles.poseContainer,
+                  selectedPoses.includes(index) && styles.selectedPose
+                ]}
+              >
+                <Image source={pose} style={styles.poseImage} />
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+        <View style={styles.buttonContainer}>
+          <View style={styles.buttonWrapper}>
+            <Button title="Previous" onPress={handlePrevious} />
+          </View>
+          <View style={styles.buttonWrapper}>
+            <Button title="Next" onPress={handleNext} />
+          </View>
         </View>
       </View>
-      <View style={styles.buttonContainer}>
-        <View style={styles.buttonWrapper}>
-          <Button title="Previous" onPress={handlePrevious} />
-        </View>
-        <View style={styles.buttonWrapper}>
-          <Button title="Next" onPress={handleNext} />
-        </View>
-      </View>
-    </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    resizeMode: 'cover',
+  },
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: 'white',
   },
   contentContainer: {
     flex: 1,
