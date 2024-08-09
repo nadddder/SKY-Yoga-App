@@ -13,7 +13,7 @@ export default function LoginScreen() {
 
   const handleNext = () => {
     setUser({ name, email });
-    navigation.navigate('InitialYogaExperience');
+    navigation.navigate('PrimarySport');
   };
 
   return (

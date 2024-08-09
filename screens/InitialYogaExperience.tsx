@@ -3,20 +3,21 @@ import { View, Button, StyleSheet, Text, ImageBackground } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import CustomButton from '../components/CustomButton';
 import { UserContext } from '../context/UserContext';
-
+import ProgressBar from '../components/ProgressBar';
 export default function InitialYogaExperience() {
   const { user, setUser } = useContext(UserContext);
   const [selectedOption, setSelectedOption] = useState(user.yogaExperience || '');
+
   const navigation = useNavigation();
 
   const handleNext = () => {
-    const mainText = selectedOption.split('\n')[0];
+    const mainText = selectedOption.split('\n')[0].toLowerCase().replace(' ', ''); // convert to lowercase and remove spaces
     setUser(prevState => ({ ...prevState, yogaExperience: mainText }));
     navigation.navigate('InitialMotivation');
   };
 
   const handlePrevious = () => {
-    navigation.navigate('Login');
+    navigation.navigate('PrimarySport');
   };
 
   return (

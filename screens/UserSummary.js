@@ -23,6 +23,8 @@ export default function UserSummary() {
       <Text style={styles.value}>{user.email}</Text>
       <Text style={styles.label}>Yoga Experience:</Text>
       <Text style={styles.value}>{user.yogaExperience}</Text>
+      <Text style={styles.label}>Primary Sports:</Text>
+      <Text style={styles.value}>{user.primarySports && user.primarySports.length > 0 ? formatList(user.primarySports) : 'No sports selected'}</Text>
       <Text style={styles.label}>Motivations:</Text>
       <Text style={styles.value}>{user.motivations && user.motivations.length > 0 ? formatList(user.motivations) : 'No motivations selected'}</Text>
       <Text style={styles.label}>Comfortable Poses:</Text>
