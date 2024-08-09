@@ -2,6 +2,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import LoginScreen from '../screens/LoginScreen';
+import PrimarySport from '../screens/PrimarySport'; // Ensure you import the correct component
 import InitialYogaExperience from '../screens/InitialYogaExperience';
 import InitialMotivation from '../screens/InitialMotivation';
 import InitialInjuries from '../screens/InitialInjuries';
@@ -19,6 +20,11 @@ export default function AppNavigator() {
         <Stack.Screen
           name="Login"
           component={LoginScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="PrimarySport"
+          component={PrimarySport}
           options={{ headerShown: false }}
         />
         <Stack.Screen
