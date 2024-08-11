@@ -17,7 +17,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <ImageBackground source={require('../assets/background.png')} style={styles.background}>
+    <ImageBackground source={require('../assets/Images/background.png')} style={styles.background}>
       <View style={styles.container}>
         <View style={styles.contentContainer}>
           <Text style={styles.description}>
@@ -37,7 +37,7 @@ export default function LoginScreen() {
             onChangeText={setEmail}
             placeholderTextColor="gray"
           />
-          <Image source={require('../assets/logo.png')} style={styles.logo} />
+          <Image source={require('../assets/Images/logo.png')} style={styles.logo} />
         </View>
         <View style={styles.buttonContainer}>
           <Button title="Next" onPress={handleNext} />

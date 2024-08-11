@@ -10,7 +10,7 @@ const PoseScreenStyles = StyleSheet.create({
   question: {
     fontSize: 24,
     marginBottom: 20,
-    marginTop: 80,  // Adjust this as necessary
+    marginTop: 40,
     textAlign: 'center',
   },
   grid: {
@@ -19,7 +19,7 @@ const PoseScreenStyles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   poseContainer: {
-    width: '30%',  // Adjust the width for a 3x3 grid layout
+    width: '30%',  // Adjust the width for a 3x5 grid layout
     marginVertical: 10,
     borderWidth: 5,
     borderColor: 'transparent',

@@ -1,5 +1,5 @@
 # Current State Summary of the App
-The SKY Yoga App is in the initial stages of development. The app currently serves as a structured questionnaire, collecting user data such as primary sports, yoga experience, motivations, injuries, and yoga pose preferences. This data is stored in the user's profile but is not yet used to generate personalized yoga routines. The app has implemented basic navigation between these screens, and the user's progress is tracked through the UserContext API.
+The SKY Yoga App is in the initial stages of development. The app currently serves as a structured questionnaire, collecting user data such as primary sports, yoga experience, motivations, injuries, and yoga pose preferences. This data is stored in the user's profile but is not yet connected to a data based or used to generate personalized yoga routines. The app has implemented basic navigation between these screens, and the user's answer to questions is tracked through the UserContext API.
 
 # Goal of the App to Achieve MVP
 The Minimum Viable Product (MVP) for the SKY Yoga App aims to deliver a comprehensive and personalized yoga experience by collecting user-specific data and generating customized yoga routines. The key objectives include:
@@ -19,6 +19,8 @@ The Minimum Viable Product (MVP) for the SKY Yoga App aims to deliver a comprehe
 
 The app guides users through a series of pages where they can input information regarding their primary sports, yoga experience, motivations, injuries, and yoga poses they are comfortable with and want to master. All of this information is stored in a user profile using the React Context API.
 
+The app uses React Navigation to manage both stack and tab navigation. Developments are done in windows using Expo, targeting IOS. 
+
 ### Directory Structure
 
 Here is a detailed breakdown of the current directory structure of the SKY Yoga App:
@@ -27,6 +29,13 @@ Here is a detailed breakdown of the current directory structure of the SKY Yoga 
 skyy0/
 │
 ├── assets/                             # Contains images and icons used in the app
+│   ├── Images/                         # General images and icons for navigation
+│   │   ├── account-icon.png
+│   │   ├── practice-icon.png
+│   │   ├── progress-icon.png
+│   │   ├── trophy-icon.png
+│   │   ├── muscle-usage-temp.jpg
+│   │   ├── ... (other general images)
 │   ├── Other Sports icon/              # Icons representing various sports
 │   │   ├── Basketball.png
 │   │   ├── Cycling.png
@@ -52,8 +61,17 @@ skyy0/
 │
 ├── navigation/                         # Navigation configuration
 │   ├── AppNavigator.js                 # Defines the stack navigation structure of the app
+│   ├── MainTabNavigator.js             # Handles the main tab navigation for Practice, Progress, and Account
+│   ├── ProgressTabNavigator.tsx        # Manages sub-tabs within the Progress tab (Muscle, Trophies, Calendar, Done Poses)
 │
 ├── screens/                            # All screen components (views) of the app
+│   ├── AccountTab.tsx                  # Account management screen
+│   ├── Calendar.tsx                    # Calendar sub-tab under Progress
+│   ├── DonePoses.tsx                   # Done Poses sub-tab under Progress
+│   ├── Muscle.tsx                      # Muscle usage report screen
+│   ├── PracticeTab.tsx                 # Practice tab screen
+│   ├── ProgressTab.tsx                 # Progress tab containing sub-tabs
+│   ├── Trophies.tsx                    # Trophies sub-tab under Progress
 │   ├── InitialComfortablePoses.tsx     # Screen for selecting comfortable yoga poses
 │   ├── InitialGoalPoses.tsx            # Screen for selecting goal yoga poses
 │   ├── InitialInjuries.tsx             # Screen for reporting any injuries

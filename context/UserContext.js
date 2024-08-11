@@ -11,6 +11,7 @@ export const UserProvider = ({ children }) => {
     motivations: [],  // Ensure this is an array
     comfortablePoses: [], // Initialize with an empty array
     goalPoses: [], // Initialize with an empty array for goal poses
+    poseHistory: {},  // New dictionary to store poses and their history
   });
 
   return (
