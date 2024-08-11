@@ -108,7 +108,7 @@ export default function InitialInjuries() {
         <View style={styles.recordingContainer}>
           <Text style={styles.recordingText}>Tell us more details</Text>
           <TouchableOpacity onPress={isRecording ? stopRecording : startRecording}>
-            <Image source={require('../assets/recordingicon.png')} style={styles.recordingIcon} />
+            <Image source={require('../assets/Images/recordingicon.png')} style={styles.recordingIcon} />
           </TouchableOpacity>
           {sound && !isRecording && (
             <Button title={isPlaying ? "Pause" : "Play Recording"} onPress={isPlaying ? pauseSound : playSound} />

@@ -29,7 +29,7 @@ export default function InitialMotivation() {
   };
 
   return (
-    <ImageBackground source={require('../assets/background.png')} style={styles.background}>
+    <ImageBackground source={require('../assets/Images/background.png')} style={styles.background}>
       <View style={styles.container}>
         <View style={styles.contentContainer}>
           <Text style={styles.text}>What is your yoga mission?</Text>

@@ -80,7 +80,7 @@ export default function PrimarySport() {
   const sportsOptions = Object.keys(sportImages);
 
   return (
-    <ImageBackground source={require('../assets/background.png')} style={styles.container}>
+    <ImageBackground source={require('../assets/Images/background.png')} style={styles.container}>
       <Text style={styles.question}>Select your primary sports</Text>
       <View style={styles.grid}>
         {sportsOptions.map((sport, index) => (

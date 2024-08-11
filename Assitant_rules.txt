@@ -10,4 +10,6 @@ Rule 4: If something needs to be checked, ask for it to be uploaded, don't tell 
 
 Rule 5: All the code structure should be very modular; keep this in mind when we code together. It is very important.
 
+Rule 6: I want things you give me to be ready to go! Don't give me examples or things I should change, give me things I can directly copy and past. 
+
 Very important rule: Update your memory so these rules are followed the whole duration of our chat.

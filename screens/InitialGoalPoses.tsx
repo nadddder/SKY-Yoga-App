@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Button, ImageBackground } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { UserContext } from '../context/UserContext';
-import { getYogaPoseCandidates } from '../context/getYogaPoseCandidates';
+import { getGoalPoseCandidates } from '../context/getYogaPoseCandidates';
 import poseimage from '../assets/poseImage';
 import PoseScreenStyles from '../components/PoseScreenStyles';
 
@@ -13,7 +13,7 @@ export default function InitialGoalPoses() {
   // Default experience level if none is selected
   const experienceLevel = user.yogaExperience || 'intermediate1';
 
-  const poses = getYogaPoseCandidates(experienceLevel);
+  const poses = getGoalPoseCandidates(experienceLevel);
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -49,7 +49,7 @@ export default function InitialGoalPoses() {
 
   return (
     <ImageBackground 
-      source={require('../assets/background.png')} 
+      source={require('../assets/Images/background.png')} 
       style={PoseScreenStyles.container}
     >
       <Text style={PoseScreenStyles.question}>Which poses do you want to master?</Text>

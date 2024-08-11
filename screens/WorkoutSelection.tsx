@@ -76,7 +76,7 @@ export default function WorkoutSelection() {
   };
 
   return (
-    <ImageBackground source={require('../assets/background.png')} style={styles.background}>
+    <ImageBackground source={require('../assets/Images/background.png')} style={styles.background}>
       <View style={styles.container}>
         <View style={styles.contentContainer}>
           <Text style={[styles.text, styles.marginTop]}>Select your Workout Details</Text>
@@ -120,7 +120,7 @@ export default function WorkoutSelection() {
           <View style={styles.recordingContainer}>
             <Text style={[styles.recordingText, styles.marginTop]}>Anything else you want to share or ask for?</Text>
             <TouchableOpacity onPress={isRecording ? stopRecording : startRecording}>
-              <Image source={require('../assets/recordingicon.png')} style={styles.recordingIcon} />
+              <Image source={require('../assets/Images/recordingicon.png')} style={styles.recordingIcon} />
             </TouchableOpacity>
             {sound && !isRecording && (
               <Button title={isPlaying ? "Pause" : "Play Recording"} onPress={isPlaying ? pauseSound : playSound} />
