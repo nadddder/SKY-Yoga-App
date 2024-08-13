@@ -8,9 +8,8 @@ import InitialMotivation from '../screens/InitialMotivation';
 import InitialInjuries from '../screens/InitialInjuries';
 import InitialComfortablePoses from '../screens/InitialComfortablePoses';
 import InitialGoalPoses from '../screens/InitialGoalPoses';
-import WorkoutSelection from '../screens/WorkoutSelection';
-import UserSummary from '../screens/UserSummary';
-import MainTabNavigator from '../navigation/MainTabNavigator'; // Import the Tab Navigator
+import MainTabNavigator from '../navigation/MainTabNavigator';
+import VideoPlayer from '../media_player/video/VideoPlayer';
 
 const Stack = createStackNavigator();
 
@@ -54,19 +53,14 @@ export default function AppNavigator() {
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="WorkoutSelection"
-          component={WorkoutSelection}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="UserSummary"
-          component={UserSummary}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
           name="MainTabNavigator"
-          component={MainTabNavigator} // Ensure this is correctly referenced
+          component={MainTabNavigator} 
           options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="VideoPlayer"
+          component={VideoPlayer}
+          options={{ headerShown: false }} 
         />
       </Stack.Navigator>
     </NavigationContainer>
