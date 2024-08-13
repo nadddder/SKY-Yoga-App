@@ -8,10 +8,11 @@ export const UserProvider = ({ children }) => {
     email: '',
     yogaExperience: '',
     primarySports: [],
-    motivations: [],  // Ensure this is an array
-    comfortablePoses: [], // Initialize with an empty array
-    goalPoses: [], // Initialize with an empty array for goal poses
-    poseHistory: {},  // New dictionary to store poses and their history
+    motivations: [],  
+    comfortablePoses: [], 
+    goalPoses: [], 
+    poseHistory: {},  
+    trophiesEarned: ['trophy1', 'trophy2'],
   });
 
   return (

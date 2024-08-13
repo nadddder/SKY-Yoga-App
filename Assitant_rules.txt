@@ -12,4 +12,6 @@ Rule 5: All the code structure should be very modular; keep this in mind when we
 
 Rule 6: I want things you give me to be ready to go! Don't give me examples or things I should change, give me things I can directly copy and past. 
 
+Rule 7: Make codes modular and add documents on important segments, including a short description on top of any new file.
+
 Very important rule: Update your memory so these rules are followed the whole duration of our chat.

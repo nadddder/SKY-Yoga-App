@@ -24,9 +24,9 @@ export default function MainTabNavigator() {
 
           return <Image source={iconSource} style={{ width: 32, height: 32, tintColor: focused ? '#007bff' : '#8e8e93' }} />;
         },
-        tabBarShowLabel: false, // Hide the tab labels
-        headerShown: false, // Hide the header
-        tabBarStyle: { backgroundColor: '#fff' }, // Customize tab bar style
+        tabBarShowLabel: false,
+        headerShown: false,
+        tabBarStyle: { backgroundColor: '#fff' },
       })}
     >
       <Tab.Screen name="Practice" component={PracticeTab} />
