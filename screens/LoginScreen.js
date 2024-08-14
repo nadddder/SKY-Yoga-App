@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { View, TextInput, Button, StyleSheet, Image, Text, Dimensions, ImageBackground } from 'react-native';
+import { View, TextInput, Button, StyleSheet, Image, Text, Dimensions, ImageBackground, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { UserContext } from '../context/UserContext';
 
@@ -11,7 +11,12 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const navigation = useNavigation();
 
-  const handleNext = () => {
+  const handleLoginPress = () => {
+    setUser({ name, email });
+    navigation.navigate('MainTabNavigator');
+  };
+
+  const handleSignUpPress = () => {
     setUser({ name, email });
     navigation.navigate('PrimarySport');
   };
@@ -40,7 +45,12 @@ export default function LoginScreen() {
           <Image source={require('../assets/Images/logo.png')} style={styles.logo} />
         </View>
         <View style={styles.buttonContainer}>
-          <Button title="Next" onPress={handleNext} />
+          <TouchableOpacity style={styles.button} onPress={handleLoginPress}>
+            <Text style={styles.buttonText}>Login</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={handleSignUpPress}>
+            <Text style={styles.buttonText}>Sign Up</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </ImageBackground>
@@ -86,5 +96,16 @@ const styles = StyleSheet.create({
   buttonContainer: {
     paddingBottom: 20,
     paddingHorizontal: 16,
+  },
+  button: {
+    backgroundColor: '#76c7c0',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 10,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 18,
   },
 });
