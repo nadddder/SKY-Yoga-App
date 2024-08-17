@@ -26,7 +26,7 @@ export default function LoginScreen() {
       <View style={styles.container}>
         <View style={styles.contentContainer}>
           <Text style={styles.description}>
-            Tell us about you and what kind of Yoga you want to practice, and a professional instructor will record a session for you!
+            Embark on a journey where yoga adapts to your unique goals and needs. Designed just for you—start today and enjoy a free month of personalized sessions. This is yoga, reimagined.
           </Text>
           <TextInput
             style={styles.input}
