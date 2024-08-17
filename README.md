@@ -55,7 +55,6 @@ skyy0/
 │   ├── videos/                         # Video files used in the app
 │   │   ├── test1.mp4
 │   │   ├── test2.mp4
-│   │   ├── test3.mp4
 │   ├── ... (other general images)
 │
 ├── components/                         # Reusable components across the app

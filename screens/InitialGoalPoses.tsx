@@ -40,7 +40,7 @@ export default function InitialGoalPoses() {
   };
 
   const handleNext = () => {
-    navigation.navigate('WorkoutSelection'); // Navigate to the Goal Poses screen
+    navigation.navigate('MainTabNavigator'); // Navigate to the Goal Poses screen
   };
 
   const handlePrevious = () => {

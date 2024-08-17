@@ -1,27 +1,37 @@
-import React, { useRef, useState } from 'react';
-import { StyleSheet, View, Dimensions } from 'react-native';
+import React, { useRef, useState, useEffect } from 'react';
+import { StyleSheet, View, Dimensions, Text } from 'react-native';
 import { Video } from 'expo-av';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { getVideoSource } from './getVideoSource';
 import VideoControls from './VideoControls';
-import VideoOptions from './VideoOptions';
-import { getVideoSource } from './utils';
 
-const { width, height } = Dimensions.get('window');
-
-export default function VideoPlayer() {
+const VideoPlayer = () => {
   const videoRef = useRef(null);
   const navigation = useNavigation();
   const route = useRoute();
-
-  const { videoFile } = route.params;
-  const [showOptions, setShowOptions] = useState(false);
-  const [hasInteracted, setHasInteracted] = useState(false);
+  const { sequence } = route.params;
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const [playbackSpeed, setPlaybackSpeed] = useState(6);  // Set default speed to x6
+  const [status, setStatus] = useState({});
+  const [playbackRate, setPlaybackRate] = useState(1.0);
+
+  // Use Effect to reset the video component when the video index changes
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.stopAsync(); // Stop the current video
+      videoRef.current.unloadAsync(); // Unload the current video
+      videoRef.current.loadAsync(
+        getVideoSource(sequence[currentVideoIndex].replace('.mp4', '')),
+        { rate: playbackRate },
+        false
+      ); // Load the new video
+      videoRef.current.playAsync(); // Play the new video
+    }
+  }, [currentVideoIndex, playbackRate]);
 
   const handleVideoEnd = () => {
-    if (!hasInteracted) {
-      setShowOptions(true);
+    if (currentVideoIndex < sequence.length - 1) {
+      setCurrentVideoIndex(currentVideoIndex + 1);
     } else {
       navigation.reset({
         index: 0,
@@ -30,79 +40,59 @@ export default function VideoPlayer() {
     }
   };
 
-  const handleOptionSelect = (option) => {
-    setHasInteracted(true);
-    let nextVideoFile;
-    switch (option) {
-      case 1:
-        nextVideoFile = 'test1.mp4';
-        break;
-      case 2:
-        nextVideoFile = 'test2.mp4';
-        break;
-      case 3:
-        nextVideoFile = 'test3.mp4';
-        break;
-      default:
-        nextVideoFile = 'test1.mp4';
-    }
-    navigation.navigate('VideoPlayer', { videoFile: nextVideoFile });
-    setShowOptions(false);
-  };
-
-  const handlePausePlay = () => {
+  const handlePausePress = () => {
+    setIsPaused(!isPaused);
     if (isPaused) {
       videoRef.current.playAsync();
     } else {
       videoRef.current.pauseAsync();
     }
-    setIsPaused(!isPaused);
   };
 
-  const handleExit = () => {
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'MainTabNavigator', params: { screen: 'PracticeTab' } }],
-    });
+  const handleExitPress = async () => {
+    if (videoRef.current) {
+      await videoRef.current.pauseAsync(); // Pause the video
+      await videoRef.current.unloadAsync(); // Unload the video to stop the audio
+    }
+    navigation.goBack();
   };
 
-  const handleChangeSpeed = () => {
-    const newSpeed = playbackSpeed === 6 ? 1 : 6;  // Toggle between x6 and x1
-    setPlaybackSpeed(newSpeed);
-    videoRef.current.setRateAsync(newSpeed, true);
+  const handleSpeedChange = (newSpeed) => {
+    setPlaybackRate(newSpeed);
   };
 
   return (
     <View style={styles.container}>
-      {!showOptions ? (
-        <>
-          <Video
-            ref={videoRef}
-            source={getVideoSource(videoFile)}
-            style={styles.video}
-            resizeMode="cover"
-            rate={playbackSpeed}  // Set initial playback speed
-            shouldPlay
-            onPlaybackStatusUpdate={(status) => {
-              if (status.didJustFinish) {
-                handleVideoEnd();
-              }
-            }}
-          />
-          <VideoControls
-            isPaused={isPaused}
-            onPausePlay={handlePausePlay}
-            onExit={handleExit}
-            onChangeSpeed={handleChangeSpeed}
-            playbackSpeed={playbackSpeed}
-          />
-        </>
-      ) : (
-        <VideoOptions onSelect={handleOptionSelect} />
-      )}
+      <Video
+        ref={videoRef}
+        source={getVideoSource(sequence[currentVideoIndex].replace('.mp4', ''))}
+        style={styles.video}
+        resizeMode="contain"  // This ensures the video maintains aspect ratio and is fully visible
+        shouldPlay={!isPaused}
+        rate={playbackRate}
+        onPlaybackStatusUpdate={status => {
+          setStatus(status);
+          if (status.didJustFinish) {
+            handleVideoEnd();
+          }
+        }}
+      />
+      <VideoControls
+        isPaused={isPaused}
+        onPausePlay={handlePausePress}
+        onExit={handleExitPress}
+        onChangeSpeed={handleSpeedChange}
+        playbackSpeed={playbackRate}
+      />
+      <View style={styles.overlay}>
+        <Text style={styles.sequenceText}>Current Sequence:</Text>
+        {sequence.map((video, index) => (
+          <Text key={index} style={styles.sequenceText}>{`${index + 1}: ${video}`}</Text>
+        ))}
+      </View>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -112,8 +102,26 @@ const styles = StyleSheet.create({
     backgroundColor: 'black',
   },
   video: {
-    width: height,
-    height: width,
+    width: Dimensions.get('window').height,  // Ensure video uses full screen
+    height: Dimensions.get('window').width,
     transform: [{ rotate: '90deg' }],
   },
+  overlay: {
+    position: 'absolute',
+    top: '10%',
+    left: '10%',
+    right: '10%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    padding: 10,
+    borderRadius: 10,
+  },
+  sequenceText: {
+    color: 'white',
+    fontSize: 16,
+    textAlign: 'center',
+  },
 });
+
+export default VideoPlayer;
