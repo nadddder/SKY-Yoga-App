@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, TouchableOpacity, Text } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Text, Dimensions } from 'react-native';
 
 export default function VideoOptions({ onSelect }) {
   return (
@@ -40,6 +40,51 @@ const styles = StyleSheet.create({
     width: '80%',
   },
   optionButtonText: {
+    color: 'white',
+    fontSize: 18,
+  },
+  // Additional styles for other components can be added here
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'black',
+  },
+  video: {
+    width: Dimensions.get('window').height,
+    height: Dimensions.get('window').width,
+    transform: [{ rotate: '90deg' }],
+  },
+  overlay: {
+    position: 'absolute',
+    top: '40%',
+    left: '10%',
+    right: '10%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    padding: 10,
+    borderRadius: 10,
+  },
+  sequenceText: {
+    color: 'white',
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  controlsContainer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  controlButton: {
+    backgroundColor: 'rgba(255, 0, 0, 0.7)',
+    padding: 10,
+    borderRadius: 5,
+  },
+  controlText: {
     color: 'white',
     fontSize: 18,
   },

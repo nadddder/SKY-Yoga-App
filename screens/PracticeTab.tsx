@@ -1,10 +1,10 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ImageBackground, Button } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { Audio } from 'expo-av';
 import { useNavigation } from '@react-navigation/native';
 import { UserContext } from '../context/UserContext';
-import { pickRandomVideo } from '../sequence_generation/pickVideo'; 
+import { generateSequence } from '../sequence_generation/generateSequence'; 
 
 const moods = [
   { label: "Calm", subtext: "Low Intensity" },
@@ -20,6 +20,7 @@ export default function PracticeTab() {
   const [sound, setSound] = useState(null);
   const [isRecording, setIsRecording] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [sequence, setSequence] = useState([]); 
   const navigation = useNavigation();
 
   const handleMoodPress = (mood) => {
@@ -68,8 +69,11 @@ export default function PracticeTab() {
   };
 
   const handleInstructMePress = () => {
-    const selectedVideo = pickRandomVideo()
-    navigation.navigate('VideoPlayer', { videoFile: selectedVideo }); // Pass the video file as a parameter
+    const videoSequence = generateSequence(user);  // Generate the video sequence based on the user's profile
+    setSequence(videoSequence);  
+    if (videoSequence.length > 0) {
+      navigation.navigate('VideoPlayer', { sequence: videoSequence });  
+    }
   };
 
   return (

@@ -28,7 +28,7 @@ export default function InitialInjuries() {
   }, [sound]);
 
   const handleNext = () => {
-    navigation.navigate('MainTabNavigator');
+    navigation.navigate('InitialComfortablePoses');
   };
 
   const handlePrevious = () => {

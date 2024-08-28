@@ -1,27 +1,45 @@
-import React, { useRef, useState } from 'react';
-import { StyleSheet, View, Dimensions } from 'react-native';
+import React, { useRef, useState, useEffect } from 'react';
+import { View, ActivityIndicator, StyleSheet, Dimensions } from 'react-native';
 import { Video } from 'expo-av';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import Slider from '@react-native-community/slider';
+import { getVideoSource } from './getVideoSource';
 import VideoControls from './VideoControls';
-import VideoOptions from './VideoOptions';
-import { getVideoSource } from './utils';
-
-const { width, height } = Dimensions.get('window');
+import { sharedStyles } from './styles';
 
 export default function VideoPlayer() {
   const videoRef = useRef(null);
   const navigation = useNavigation();
   const route = useRoute();
-
-  const { videoFile } = route.params;
-  const [showOptions, setShowOptions] = useState(false);
-  const [hasInteracted, setHasInteracted] = useState(false);
+  const { sequence } = route.params;
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const [playbackSpeed, setPlaybackSpeed] = useState(6);  // Set default speed to x6
+  const [status, setStatus] = useState({});
+  const [playbackRate, setPlaybackRate] = useState(1.0);
+  const [loading, setLoading] = useState(true);
+  const [videoUri, setVideoUri] = useState(null);
+  const [nextVideoUri, setNextVideoUri] = useState(null);
 
-  const handleVideoEnd = () => {
-    if (!hasInteracted) {
-      setShowOptions(true);
+  useEffect(() => {
+    const loadVideo = async () => {
+      setLoading(true);
+      const source = await getVideoSource(sequence[currentVideoIndex]);
+      setVideoUri(source);
+      setLoading(false);
+
+      // Preload the next video in the sequence
+      if (currentVideoIndex < sequence.length - 1) {
+        const nextSource = await getVideoSource(sequence[currentVideoIndex + 1]);
+        setNextVideoUri(nextSource);
+      }
+    };
+
+    loadVideo();
+  }, [currentVideoIndex]);
+
+  const handleVideoEnd = async () => {
+    if (currentVideoIndex < sequence.length - 1) {
+      setCurrentVideoIndex(currentVideoIndex + 1);
     } else {
       navigation.reset({
         index: 0,
@@ -30,90 +48,92 @@ export default function VideoPlayer() {
     }
   };
 
-  const handleOptionSelect = (option) => {
-    setHasInteracted(true);
-    let nextVideoFile;
-    switch (option) {
-      case 1:
-        nextVideoFile = 'test1.mp4';
-        break;
-      case 2:
-        nextVideoFile = 'test2.mp4';
-        break;
-      case 3:
-        nextVideoFile = 'test3.mp4';
-        break;
-      default:
-        nextVideoFile = 'test1.mp4';
-    }
-    navigation.navigate('VideoPlayer', { videoFile: nextVideoFile });
-    setShowOptions(false);
-  };
-
-  const handlePausePlay = () => {
+  const handlePausePress = () => {
+    setIsPaused(!isPaused);
     if (isPaused) {
       videoRef.current.playAsync();
     } else {
       videoRef.current.pauseAsync();
     }
-    setIsPaused(!isPaused);
   };
 
-  const handleExit = () => {
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'MainTabNavigator', params: { screen: 'PracticeTab' } }],
-    });
+  const handleExitPress = async () => {
+    if (videoRef.current) {
+      await videoRef.current.pauseAsync();
+      await videoRef.current.unloadAsync();
+    }
+    navigation.goBack();
   };
 
-  const handleChangeSpeed = () => {
-    const newSpeed = playbackSpeed === 6 ? 1 : 6;  // Toggle between x6 and x1
-    setPlaybackSpeed(newSpeed);
-    videoRef.current.setRateAsync(newSpeed, true);
+  const handleSpeedChange = (newSpeed) => {
+    setPlaybackRate(newSpeed);
+  };
+
+  const handleSliderValueChange = async (value) => {
+    if (videoRef.current) {
+      await videoRef.current.setPositionAsync(value);
+    }
   };
 
   return (
-    <View style={styles.container}>
-      {!showOptions ? (
+    <View style={sharedStyles.container}>
+      {loading ? (
+        <ActivityIndicator size="large" color="#ffffff" />
+      ) : (
         <>
           <Video
             ref={videoRef}
-            source={getVideoSource(videoFile)}
-            style={styles.video}
+            source={videoUri}
+            style={sharedStyles.video}
             resizeMode="cover"
-            rate={playbackSpeed}  // Set initial playback speed
-            shouldPlay
+            shouldPlay={!isPaused}
+            rate={playbackRate}
             onPlaybackStatusUpdate={(status) => {
+              setStatus(status);
               if (status.didJustFinish) {
                 handleVideoEnd();
               }
             }}
           />
-          <VideoControls
-            isPaused={isPaused}
-            onPausePlay={handlePausePlay}
-            onExit={handleExit}
-            onChangeSpeed={handleChangeSpeed}
-            playbackSpeed={playbackSpeed}
-          />
+          <View style={styles.progressBarContainer}>
+            <Slider
+              style={styles.slider}
+              minimumValue={0}
+              maximumValue={status.durationMillis || 0}
+              value={status.positionMillis || 0}
+              onSlidingComplete={handleSliderValueChange}
+              minimumTrackTintColor="#76c7c0"
+              maximumTrackTintColor="#000000"
+              thumbTintColor="#ffffff"
+            />
+          </View>
         </>
-      ) : (
-        <VideoOptions onSelect={handleOptionSelect} />
       )}
+      <VideoControls
+        isPaused={isPaused}
+        onPausePlay={handlePausePress}
+        onExit={handleExitPress}
+        onChangeSpeed={handleSpeedChange}
+        playbackSpeed={playbackRate}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  progressBarContainer: {
+    position: 'absolute',
+    bottom: Dimensions.get('window').width * 0.8,
+    left: -Dimensions.get('window').height * 0.3,
+    right: 0,
+    height: Dimensions.get('window').width * 0.55,
+    width: Dimensions.get('window').height * 0.7,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'black',
-  },
-  video: {
-    width: height,
-    height: width,
     transform: [{ rotate: '90deg' }],
+  },
+  slider: {
+    width: '100%',  // Make the slider fill the container width
+    height: 40,
   },
 });

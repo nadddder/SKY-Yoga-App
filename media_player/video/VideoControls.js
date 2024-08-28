@@ -1,51 +1,56 @@
-import React from 'react';
-import { StyleSheet, TouchableOpacity, Text } from 'react-native';
+import React, { useState } from 'react';
+import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { sharedStyles } from './styles';
 
 export default function VideoControls({ isPaused, onPausePlay, onExit, onChangeSpeed, playbackSpeed }) {
+  const [showSpeedOptions, setShowSpeedOptions] = useState(false);
+
+  const handleSpeedPress = () => {
+    setShowSpeedOptions(!showSpeedOptions);
+  };
+
   return (
     <>
-      <TouchableOpacity style={styles.playPauseButton} onPress={onPausePlay}>
+      <TouchableOpacity style={sharedStyles.playPauseButton} onPress={onPausePlay}>
         <MaterialIcons
           name={isPaused ? 'play-arrow' : 'pause'}
           size={48}
-          color="red"
+          color="white"
+          style={{ transform: [{ rotate: '90deg' }] }}
         />
       </TouchableOpacity>
-      <TouchableOpacity style={styles.exitButton} onPress={onExit}>
-        <MaterialIcons name="close" size={36} color="red" />
+      <TouchableOpacity style={sharedStyles.exitButton} onPress={onExit}>
+        <MaterialIcons
+          name="close"
+          size={36}
+          color="white"
+          style={{ transform: [{ rotate: '90deg' }] }}
+        />
       </TouchableOpacity>
-      <TouchableOpacity style={styles.speedButton} onPress={onChangeSpeed}>
-        <Text style={styles.speedButtonText}>x{playbackSpeed}</Text>
+      <TouchableOpacity style={sharedStyles.speedButton} onPress={handleSpeedPress}>
+        <Text style={[sharedStyles.speedButtonText, { transform: [{ rotate: '90deg' }] }]}>
+          x{playbackSpeed}
+        </Text>
       </TouchableOpacity>
+      {showSpeedOptions && (
+        <View style={sharedStyles.speedOptions}>
+          {[1, 2, 5].map((speed) => (
+            <TouchableOpacity
+              key={speed}
+              onPress={() => {
+                onChangeSpeed(speed);
+                setShowSpeedOptions(false);
+              }}
+              style={sharedStyles.speedOption}
+            >
+              <Text style={[sharedStyles.speedOptionText, { transform: [{ rotate: '90deg' }] }]}>
+                x{speed}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  playPauseButton: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: [{ translateX: -24 }, { translateY: -24 }],
-    zIndex: 1,
-  },
-  exitButton: {
-    position: 'absolute',
-    top: 40,
-    right: 20,
-    zIndex: 1,
-  },
-  speedButton: {
-    position: 'absolute',
-    bottom: 40,
-    right: 20,
-    zIndex: 1,
-    backgroundColor: 'transparent',
-    padding: 10,
-  },
-  speedButtonText: {
-    color: 'red',
-    fontSize: 24,
-  },
-});
