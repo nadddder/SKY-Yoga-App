@@ -2,7 +2,8 @@
 
 ## Current State Summary of the App
 
-The SKY Yoga App is in the initial stages of development. The app currently serves as a structured questionnaire, collecting user data such as primary sports, yoga experience, motivations, injuries, and yoga pose preferences. This data is stored in the user's profile but is not yet connected to a database or used to generate personalized yoga routines. The app has implemented basic navigation between these screens, and the user's answers to questions are tracked through the UserContext API.
+The SKY Yoga App is in the early stages of development, focusing on collecting detailed user data through a structured questionnaire and showing a video sequence from the cloud. Questionnaire data is currently managed through the React Context API, allowing for dynamic and contextual storage within the app. 
+The groundwork for personalization and further features is being laid, with future development aimed at integrating these data points into a more comprehensive and tailored user experience.
 
 ## Goal of the App to Achieve MVP
 
@@ -24,6 +25,13 @@ The Minimum Viable Product (MVP) for the SKY Yoga App aims to deliver a comprehe
 The app guides users through a series of pages where they can input information regarding their primary sports, yoga experience, motivations, injuries, and yoga poses they are comfortable with and want to master. All of this information is stored in a user profile using the React Context API.
 
 The app uses React Navigation to manage both stack and tab navigation. Development is done on Windows using Expo, targeting iOS.
+
+### Firebase Integration
+
+Firebase is being used to manage cloud storage and user data. The following Firebase services are integrated into the app:
+
+1. **Firebase Storage**: The app uses Firebase Storage to host and stream yoga videos. Videos are preloaded and buffered to ensure a smooth playback experience with minimal delays.
+2. **Firebase Firestore (Planned)**: User profiles, preferences, and progress data will eventually be stored in Firebase Firestore, allowing for persistent data storage and retrieval across different devices.
 
 ### Directory Structure
 
@@ -71,7 +79,6 @@ skyy0/
 │   │   ├── VideoPlayer.js              # Main video player component
 │   │   ├── VideoControls.js            # Play/Pause, Exit, and Speed Control buttons
 │   │   ├── VideoOptions.js             # Option selection component for choosing the next video
-│   │   ├── utils.js                    # Utility functions for video player, including getVideoSource
 │
 ├── sequence_generation/                # Logic for generating yoga sequences
 │   ├── pickVideo.js                    # Function to select a random video
@@ -104,4 +111,4 @@ skyy0/
 ├── babel.config.js                     # Babel configuration file for JavaScript/TypeScript compilation
 ├── package.json                        # NPM package configuration file
 ├── README.md                           # Project documentation (this file)
-├── tsconfig.json                       # TypeScr
+├── tsconfig.json                       # TypeScript configuration file

@@ -1,11 +1,13 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { StyleSheet, View, Dimensions, Text } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, Dimensions } from 'react-native';
 import { Video } from 'expo-av';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import Slider from '@react-native-community/slider';
 import { getVideoSource } from './getVideoSource';
 import VideoControls from './VideoControls';
+import { sharedStyles } from './styles';
 
-const VideoPlayer = () => {
+export default function VideoPlayer() {
   const videoRef = useRef(null);
   const navigation = useNavigation();
   const route = useRoute();
@@ -14,22 +16,28 @@ const VideoPlayer = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [status, setStatus] = useState({});
   const [playbackRate, setPlaybackRate] = useState(1.0);
+  const [loading, setLoading] = useState(true);
+  const [videoUri, setVideoUri] = useState(null);
+  const [nextVideoUri, setNextVideoUri] = useState(null);
 
-  // Use Effect to reset the video component when the video index changes
   useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.stopAsync(); // Stop the current video
-      videoRef.current.unloadAsync(); // Unload the current video
-      videoRef.current.loadAsync(
-        getVideoSource(sequence[currentVideoIndex].replace('.mp4', '')),
-        { rate: playbackRate },
-        false
-      ); // Load the new video
-      videoRef.current.playAsync(); // Play the new video
-    }
-  }, [currentVideoIndex, playbackRate]);
+    const loadVideo = async () => {
+      setLoading(true);
+      const source = await getVideoSource(sequence[currentVideoIndex]);
+      setVideoUri(source);
+      setLoading(false);
 
-  const handleVideoEnd = () => {
+      // Preload the next video in the sequence
+      if (currentVideoIndex < sequence.length - 1) {
+        const nextSource = await getVideoSource(sequence[currentVideoIndex + 1]);
+        setNextVideoUri(nextSource);
+      }
+    };
+
+    loadVideo();
+  }, [currentVideoIndex]);
+
+  const handleVideoEnd = async () => {
     if (currentVideoIndex < sequence.length - 1) {
       setCurrentVideoIndex(currentVideoIndex + 1);
     } else {
@@ -51,8 +59,8 @@ const VideoPlayer = () => {
 
   const handleExitPress = async () => {
     if (videoRef.current) {
-      await videoRef.current.pauseAsync(); // Pause the video
-      await videoRef.current.unloadAsync(); // Unload the video to stop the audio
+      await videoRef.current.pauseAsync();
+      await videoRef.current.unloadAsync();
     }
     navigation.goBack();
   };
@@ -61,22 +69,46 @@ const VideoPlayer = () => {
     setPlaybackRate(newSpeed);
   };
 
+  const handleSliderValueChange = async (value) => {
+    if (videoRef.current) {
+      await videoRef.current.setPositionAsync(value);
+    }
+  };
+
   return (
-    <View style={styles.container}>
-      <Video
-        ref={videoRef}
-        source={getVideoSource(sequence[currentVideoIndex].replace('.mp4', ''))}
-        style={styles.video}
-        resizeMode="contain"  // This ensures the video maintains aspect ratio and is fully visible
-        shouldPlay={!isPaused}
-        rate={playbackRate}
-        onPlaybackStatusUpdate={status => {
-          setStatus(status);
-          if (status.didJustFinish) {
-            handleVideoEnd();
-          }
-        }}
-      />
+    <View style={sharedStyles.container}>
+      {loading ? (
+        <ActivityIndicator size="large" color="#ffffff" />
+      ) : (
+        <>
+          <Video
+            ref={videoRef}
+            source={videoUri}
+            style={sharedStyles.video}
+            resizeMode="cover"
+            shouldPlay={!isPaused}
+            rate={playbackRate}
+            onPlaybackStatusUpdate={(status) => {
+              setStatus(status);
+              if (status.didJustFinish) {
+                handleVideoEnd();
+              }
+            }}
+          />
+          <View style={styles.progressBarContainer}>
+            <Slider
+              style={styles.slider}
+              minimumValue={0}
+              maximumValue={status.durationMillis || 0}
+              value={status.positionMillis || 0}
+              onSlidingComplete={handleSliderValueChange}
+              minimumTrackTintColor="#76c7c0"
+              maximumTrackTintColor="#000000"
+              thumbTintColor="#ffffff"
+            />
+          </View>
+        </>
+      )}
       <VideoControls
         isPaused={isPaused}
         onPausePlay={handlePausePress}
@@ -84,44 +116,24 @@ const VideoPlayer = () => {
         onChangeSpeed={handleSpeedChange}
         playbackSpeed={playbackRate}
       />
-      <View style={styles.overlay}>
-        <Text style={styles.sequenceText}>Current Sequence:</Text>
-        {sequence.map((video, index) => (
-          <Text key={index} style={styles.sequenceText}>{`${index + 1}: ${video}`}</Text>
-        ))}
-      </View>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  progressBarContainer: {
+    position: 'absolute',
+    bottom: Dimensions.get('window').width * 0.8,
+    left: -Dimensions.get('window').height * 0.3,
+    right: 0,
+    height: Dimensions.get('window').width * 0.55,
+    width: Dimensions.get('window').height * 0.7,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'black',
-  },
-  video: {
-    width: Dimensions.get('window').height,  // Ensure video uses full screen
-    height: Dimensions.get('window').width,
     transform: [{ rotate: '90deg' }],
   },
-  overlay: {
-    position: 'absolute',
-    top: '10%',
-    left: '10%',
-    right: '10%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    padding: 10,
-    borderRadius: 10,
-  },
-  sequenceText: {
-    color: 'white',
-    fontSize: 16,
-    textAlign: 'center',
+  slider: {
+    width: '100%',  // Make the slider fill the container width
+    height: 40,
   },
 });
-
-export default VideoPlayer;

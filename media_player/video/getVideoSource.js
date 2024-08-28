@@ -1,11 +1,15 @@
-export const getVideoSource = (videoFile) => {
-    switch (videoFile) {
-        case 'test1':
-            return require('../../assets/videos/test1.mp4');
-        case 'test2':
-            return require('../../assets/videos/test2.mp4');
-        default:
-            console.warn(`Video file ${videoFile} not found.`);
-            return null;
-    }
+import { getStorage, ref, getDownloadURL } from "firebase/storage";
+
+// Function to retrieve the video URL from Firebase Storage
+export const getVideoSource = async (videoFile) => {
+  const storage = getStorage();
+  const videoRef = ref(storage, `${videoFile}.mp4`);
+
+  try {
+    const url = await getDownloadURL(videoRef);
+    return { uri: url };
+  } catch (error) {
+    console.error(`Error fetching video ${videoFile}:`, error);
+    return null;
+  }
 };
