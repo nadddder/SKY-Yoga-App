@@ -1,6 +1,6 @@
-import React, { useContext } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Image, StyleSheet, Text } from 'react-native';
-import { UserContext } from '../context/UserContext';
+import { firestore } from '../firebaseSetup';
 
 const trophyCategories = [
   { title: 'Category 1', trophies: ['trophy1', 'trophy2', 'trophy3'] },
@@ -11,7 +11,23 @@ const trophyCategories = [
 ];
 
 export default function Trophies() {
-  const { user } = useContext(UserContext);
+  const [trophiesEarned, setTrophiesEarned] = useState([]);
+
+  useEffect(() => {
+    const fetchTrophies = async () => {
+      try {
+        const userDoc = await firestore.collection('Users').doc('user-id-here').get(); // Replace 'user-id-here' with the actual user ID
+        if (userDoc.exists) {
+          const userData = userDoc.data();
+          setTrophiesEarned(userData.trophiesEarned || []);
+        }
+      } catch (error) {
+        console.error('Error fetching trophies:', error);
+      }
+    };
+
+    fetchTrophies();
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -21,7 +37,7 @@ export default function Trophies() {
           <View style={styles.trophyRow}>
             {category.trophies.map((trophy, i) => (
               <View key={i} style={styles.trophyContainer}>
-                {user.trophiesEarned?.includes(trophy) ? (
+                {trophiesEarned.includes(trophy) ? (
                   <Image
                     source={require('../assets/Trophies/chakras.jpg')}
                     style={styles.trophyImage}
@@ -42,7 +58,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    marginTop: 50, 
+    marginTop: 50,
   },
   categoryContainer: {
     marginBottom: 20,
@@ -62,7 +78,7 @@ const styles = StyleSheet.create({
   trophyImage: {
     width: 50,
     height: 50,
-    borderRadius: 25, 
+    borderRadius: 25,
   },
   emptyTrophy: {
     width: 50,

@@ -1,23 +1,31 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { View, Button, StyleSheet, Text, ImageBackground } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import CustomButton from '../components/CustomButton';
-import { UserContext } from '../context/UserContext';
-import ProgressBar from '../components/ProgressBar';
-export default function InitialYogaExperience() {
-  const { user, setUser } = useContext(UserContext);
-  const [selectedOption, setSelectedOption] = useState(user.yogaExperience || '');
+import { firestore, auth } from '../firebaseSetup';
 
+export default function InitialYogaExperience() {
+  const [selectedOption, setSelectedOption] = useState('');
   const navigation = useNavigation();
 
-  const handleNext = () => {
+  const handleNext = async () => {
     const mainText = selectedOption.split('\n')[0].toLowerCase().replace(' ', ''); // convert to lowercase and remove spaces
-    setUser(prevState => ({ ...prevState, yogaExperience: mainText }));
-    navigation.navigate('InitialMotivation');
-  };
+    
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        await firestore.collection('Users').doc(user.uid).update({
+          yogaExperience: mainText,
+        });
+        console.log('Yoga experience updated in Firestore:', mainText);
+      } else {
+        console.error('No authenticated user found');
+      }
+    } catch (error) {
+      console.error('Error updating yoga experience in Firestore:', error.message);
+    }
 
-  const handlePrevious = () => {
-    navigation.navigate('PrimarySport');
+    navigation.navigate('InitialMotivation');
   };
 
   return (
@@ -41,9 +49,6 @@ export default function InitialYogaExperience() {
           ))}
         </View>
         <View style={styles.buttonContainer}>
-          <View style={styles.buttonWrapper}>
-            <Button title="Previous" onPress={handlePrevious} />
-          </View>
           <View style={styles.buttonWrapper}>
             <Button title="Next" onPress={handleNext} />
           </View>
@@ -75,7 +80,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center', // Center the button
     paddingHorizontal: 16,
     paddingBottom: 20,
   },
