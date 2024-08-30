@@ -1,139 +1,115 @@
-import React, { useState, useContext } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ImageBackground, Button } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
-import { Audio } from 'expo-av';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, Image, ImageBackground, StyleSheet } from 'react-native';
+import Slider from '@react-native-community/slider';
 import { useNavigation } from '@react-navigation/native';
-import { UserContext } from '../context/UserContext';
-import { generateSequence } from '../sequence_generation/generateSequence'; 
+import { generateSequence } from '../sequence_generation/generateSequence';
 
+// Static image imports
+import wallIcon from '../assets/Images/wall-icon.png';
+import blanketIcon from '../assets/Images/blanket-icon.png';
+import bolsterIcon from '../assets/Images/bolster-icon.png';
+import beltIcon from '../assets/Images/belt-icon.png';
+import blocksIcon from '../assets/Images/blocks-icon.png';
+
+// Mood options
 const moods = [
   { label: "Calm", subtext: "Low Intensity" },
   { label: "Balanced", subtext: "Moderate" },
   { label: "Pumped up!", subtext: "High Intensity" },
 ];
 
+const propsOptions = [
+  { label: "Wall", icon: wallIcon },
+  { label: "Blanket", icon: blanketIcon },
+  { label: "Bolster", icon: bolsterIcon },
+  { label: "Belt", icon: beltIcon },
+  { label: "Blocks", icon: blocksIcon },
+];
+
 export default function PracticeTab() {
-  const { user, setUser } = useContext(UserContext);
-  const [selectedDuration, setSelectedDuration] = useState(user.duration || { hour: 0, minute: 0 });
-  const [selectedMood, setSelectedMood] = useState(user.mood || null);
-  const [recording, setRecording] = useState(null);
-  const [sound, setSound] = useState(null);
-  const [isRecording, setIsRecording] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [sequence, setSequence] = useState([]); 
+  const [selectedDuration, setSelectedDuration] = useState(15); // Default to 15 minutes
+  const [selectedProps, setSelectedProps] = useState([]);
+  const [selectedMood, setSelectedMood] = useState(null);
   const navigation = useNavigation();
+
+  const handleSliderChange = (value) => {
+    setSelectedDuration(value);
+  };
+
+  const togglePropSelection = (prop) => {
+    const updatedSelection = selectedProps.includes(prop)
+      ? selectedProps.filter(item => item !== prop)
+      : [...selectedProps, prop];
+
+    setSelectedProps(updatedSelection);
+  };
 
   const handleMoodPress = (mood) => {
     setSelectedMood(mood);
-    setUser(prevState => ({ ...prevState, mood: mood.subtext }));
   };
 
-  const startRecording = async () => {
-    try {
-      const { status } = await Audio.requestPermissionsAsync();
-      if (status !== 'granted') return;
-
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-      });
-
-      const { recording } = await Audio.Recording.createAsync(
-        Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY
-      );
-      setRecording(recording);
-      setIsRecording(true);
-    } catch (err) {
-      console.error('Failed to start recording', err);
-    }
-  };
-
-  const stopRecording = async () => {
-    setIsRecording(false);
-    await recording.stopAndUnloadAsync();
-    const { sound, status } = await recording.createNewLoadedSoundAsync();
-    setSound(sound);
-    setRecording(null);
-  };
-
-  const playSound = async () => {
-    if (sound) {
-      await sound.replayAsync();
-    }
-  };
-
-  const pauseSound = async () => {
-    if (sound) {
-      await sound.pauseAsync();
-    }
-  };
-
-  const handleInstructMePress = () => {
-    const videoSequence = generateSequence(user);  // Generate the video sequence based on the user's profile
-    setSequence(videoSequence);  
-    if (videoSequence.length > 0) {
-      navigation.navigate('VideoPlayer', { sequence: videoSequence });  
-    }
+  const handleStartNowPress = () => {
+    const durationInMinutes = selectedDuration;
+    const selectedPropLabels = selectedProps.map(prop => prop.label);
+    const sequence = generateSequence({ duration: durationInMinutes, props: selectedPropLabels, mood: selectedMood });
+    navigation.navigate('VideoPlayer', { sequence });
   };
 
   return (
-    <ImageBackground source={require('../assets/Images/background.png')} style={styles.background}>
+    <ImageBackground source={require('../assets/Images/practice_background.png')} style={styles.background}>
       <View style={styles.container}>
-        <View style={styles.contentContainer}>
-          <Text style={[styles.text, styles.marginTop]}>Select your Workout Details</Text>
-          <Text style={[styles.text, styles.marginTop]}>Duration</Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={selectedDuration.hour}
-              style={styles.narrowPicker}
-              onValueChange={(itemValue) => setSelectedDuration({ ...selectedDuration, hour: itemValue })}
+        <Text style={[styles.text, styles.title]}>Select Workout</Text>
+
+        <Text style={[styles.text, styles.marginTop]}>Duration: {Math.floor(selectedDuration / 60)}h {selectedDuration % 60}m</Text>
+        <Slider
+          style={styles.slider}
+          minimumValue={15}
+          maximumValue={90}
+          step={5}
+          value={selectedDuration}
+          onValueChange={handleSliderChange}
+          minimumTrackTintColor="#76c7c0"
+          maximumTrackTintColor="#000000"
+        />
+
+        <Text style={[styles.text, styles.marginTop]}>Available props</Text>
+        <View style={styles.propsRow}>
+          {propsOptions.map((prop, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.propContainer,
+                selectedProps.includes(prop) && styles.selectedPropContainer
+              ]}
+              onPress={() => togglePropSelection(prop)}
             >
-              {Array.from({ length: 2 }, (_, i) => i).map((value) => (
-                <Picker.Item key={value} label={`${value} hr`} value={value} />
-              ))}
-            </Picker>
-            <Picker
-              selectedValue={selectedDuration.minute}
-              style={styles.narrowPicker}
-              onValueChange={(itemValue) => setSelectedDuration({ ...selectedDuration, minute: itemValue })}
-            >
-              {Array.from({ length: 12 }, (_, i) => i * 5).map((value) => (
-                <Picker.Item key={value} label={`${value} min`} value={value} />
-              ))}
-            </Picker>
-          </View>
-          <Text style={[styles.text, styles.marginTop]}>Select your workout mood</Text>
-          <View style={styles.moodBar}>
-            {moods.map((mood, index) => (
-              <TouchableOpacity
-                key={index}
-                onPress={() => handleMoodPress(mood)}
-                style={[
-                  styles.moodContainer,
-                  selectedMood === mood && styles.selectedMood
-                ]}
-              >
-                <Text style={styles.moodText}>{mood.label}</Text>
-                <Text style={styles.moodSubtext}>{mood.subtext}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          <View style={styles.recordingContainer}>
-            <Text style={[styles.recordingText, styles.marginTop]}>Anything else you want to share or ask for?</Text>
-            <TouchableOpacity onPress={isRecording ? stopRecording : startRecording}>
-              <Image source={require('../assets/Images/recordingicon.png')} style={styles.recordingIcon} />
+              <Image source={prop.icon} style={styles.propImage} />
+              <Text style={styles.propLabel}>{prop.label}</Text>
             </TouchableOpacity>
-            {sound && !isRecording && (
-              <Button title={isPlaying ? "Pause" : "Play Recording"} onPress={isPlaying ? pauseSound : playSound} />
-            )}
-          </View>
+          ))}
         </View>
-        <View style={styles.buttonContainer}>
-          <View style={styles.buttonWrapper}>
-            <TouchableOpacity style={styles.instructMeButton} onPress={handleInstructMePress}>
-              <Text style={styles.instructMeButtonText}>Instruct me!</Text>
+
+        <Text style={[styles.text, styles.marginTop]}>Mood</Text>
+        <View style={styles.moodBar}>
+          {moods.map((mood, index) => (
+            <TouchableOpacity
+              key={index}
+              onPress={() => handleMoodPress(mood)}
+              style={[
+                styles.moodContainer,
+                selectedMood === mood && styles.selectedMood
+              ]}
+            >
+              <Text style={styles.moodText}>{mood.label}</Text>
+              <Text style={styles.moodSubtext}>{mood.subtext}</Text>
             </TouchableOpacity>
-          </View>
+          ))}
+        </View>
+
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.startNowButton} onPress={handleStartNowPress}>
+            <Text style={styles.startNowButtonText}>Start now</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </ImageBackground>
@@ -148,45 +124,65 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    marginTop: 50, 
-  },
-  contentContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    marginTop: 20,
+    marginTop: 50,
   },
   text: {
     fontSize: 24,
     textAlign: 'center',
-    marginBottom: 1, 
+    marginBottom: 10,
+  },
+  title: {
+    fontSize: 30, // Larger font for title
+    fontWeight: 'bold',
   },
   marginTop: {
     marginTop: 20,
   },
-  pickerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginVertical: 1, 
+  slider: {
+    width: '100%',
+    height: 40,
+    marginBottom: 30,
   },
-  narrowPicker: {
-    paddingVertical: 1,
-    width: 100, 
+  propsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  propContainer: {
+    alignItems: 'center',
+  },
+  selectedPropContainer: {
+    borderColor: 'green',
+    borderWidth: 3,
+    borderRadius: 10,
+    padding: 5,
+  },
+  propImage: {
+    width: 50,
+    height: 50,
+    resizeMode: 'contain',
+  },
+  propLabel: {
+    marginTop: 5,
+    fontSize: 14,
+    textAlign: 'center',
   },
   moodBar: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 3, 
+    marginTop: 20,
   },
   moodContainer: {
     padding: 10,
     marginHorizontal: 5,
     borderRadius: 20,
     backgroundColor: '#e0e0e0',
-    width: 120, // Narrow the toggle buttons
+    width: 120,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'gray', // Add border to indicate choices
+    borderColor: 'gray',
   },
   selectedMood: {
     backgroundColor: '#76c7c0',
@@ -199,39 +195,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: 'gray',
   },
-  recordingContainer: {
-    marginTop: 20,
-    alignItems: 'center',
-    paddingBottom: 40, 
-  },
-  recordingText: {
-    marginBottom: 10,
-    fontSize: 18,
-  },
-  recordingIcon: {
-    width: 50,
-    height: 50,
-    marginVertical: 10,
-  },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center', 
+    alignItems: 'center',
     paddingHorizontal: 16,
     paddingBottom: 20,
   },
-  buttonWrapper: {
-    flex: 1,
-    marginHorizontal: 10,
-  },
-  instructMeButton: {
+  startNowButton: {
     backgroundColor: '#76c7c0',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
+    width: '70%',  
+    marginTop: 100,
   },
-  instructMeButtonText: {
+  startNowButtonText: {
     fontSize: 18,
     color: 'white',
   },

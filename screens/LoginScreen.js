@@ -1,24 +1,58 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { View, TextInput, Button, StyleSheet, Image, Text, Dimensions, ImageBackground, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { UserContext } from '../context/UserContext';
+import { auth, firestore } from '../firebaseSetup';  // Ensure you import your Firebase setup
 
 const screenHeight = Dimensions.get('window').height;
 
 export default function LoginScreen() {
-  const { setUser } = useContext(UserContext);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const navigation = useNavigation();
 
   const handleLoginPress = () => {
-    setUser({ name, email });
-    navigation.navigate('MainTabNavigator');
+    auth.signInWithEmailAndPassword(email, password)
+      .then(userCredential => {
+        navigation.navigate('MainTabNavigator');
+      })
+      .catch(error => {
+        console.error('Error logging in:', error.message);
+        // Handle login error (e.g., show an alert)
+      });
   };
-
+  
   const handleSignUpPress = () => {
-    setUser({ name, email });
-    navigation.navigate('PrimarySport');
+    auth.createUserWithEmailAndPassword(email, password)
+      .then(userCredential => {
+        const user = userCredential.user;
+  
+        // Optionally, you can update the user's profile with the name
+        user.updateProfile({
+          displayName: name
+        }).then(() => {
+          // Navigate to InitialYogaExperience with the updated user info
+          navigation.navigate('InitialYogaExperience', { name: user.displayName, email: user.email });
+        }).catch(error => {
+          console.error('Error updating profile:', error.message);
+          // Handle profile update error
+        });
+  
+        // You can also add the user to Firestore or perform other actions here if needed
+        firestore.collection('Users').doc(user.uid).set({
+          email: user.email,
+          name: user.displayName || name,
+          yogaExperience: '',
+          motivations: [],
+          comfortablePoses: [],
+          goalPoses: []
+        });
+  
+      })
+      .catch(error => {
+        console.error('Error signing up:', error.message);
+        // Handle sign-up error (e.g., show an alert)
+      });
   };
 
   return (
@@ -40,6 +74,14 @@ export default function LoginScreen() {
             placeholder="Email"
             value={email}
             onChangeText={setEmail}
+            placeholderTextColor="gray"
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
             placeholderTextColor="gray"
           />
           <Image source={require('../assets/Images/logo.png')} style={styles.logo} />

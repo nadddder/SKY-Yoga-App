@@ -1,7 +1,7 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Button, ImageBackground, Image, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { UserContext } from '../context/UserContext';
+import { firestore } from '../firebaseSetup';
 
 // Static image imports
 import Basketball from '../assets/Other Sports icon/BasketBall.png';
@@ -19,22 +19,26 @@ import Tennis from '../assets/Other Sports icon/Tennis.png';
 import Volleyball from '../assets/Other Sports icon/Volleyball.png';
 import Yoga from '../assets/Other Sports icon/Yoga.png';
 import Laptop from '../assets/Other Sports icon/Laptop.png';
-import ProgressBar from '../components/ProgressBar';
 
 export default function PrimarySport() {
-  const { user, setUser } = useContext(UserContext);
-  const [selectedSports, setSelectedSports] = useState(user.primarySports || []);
-
+  const [selectedSports, setSelectedSports] = useState([]);
   const navigation = useNavigation();
 
   useEffect(() => {
-    if (!user.primarySports) {
-      setUser(prevState => ({
-        ...prevState,
-        primarySports: [],
-      }));
-    }
-  }, [user.primarySports]);
+    const fetchUserSports = async () => {
+      try {
+        const userDoc = await firestore.collection('Users').doc('user-id-here').get(); // Replace 'user-id-here' with the actual user ID
+        if (userDoc.exists) {
+          const userData = userDoc.data();
+          setSelectedSports(userData.primarySports || []);
+        }
+      } catch (error) {
+        console.error('Error fetching user sports:', error);
+      }
+    };
+
+    fetchUserSports();
+  }, []);
 
   const toggleSportSelection = (sport) => {
     const updatedSelection = selectedSports.includes(sport)
@@ -42,20 +46,17 @@ export default function PrimarySport() {
       : [...selectedSports, sport];
 
     setSelectedSports(updatedSelection);
-
-    // Update the user context with the selected sports
-    setUser(prevState => ({
-      ...prevState,
-      primarySports: updatedSelection
-    }));
   };
 
-  const handleNext = () => {
-    navigation.navigate('InitialYogaExperience'); // Navigate to the next page
-  };
-
-  const handlePrevious = () => {
-    navigation.goBack(); // Navigate to the previous page
+  const handleNext = async () => {
+    try {
+      await firestore.collection('Users').doc('user-id-here').update({
+        primarySports: selectedSports
+      });
+      navigation.navigate('InitialYogaExperience');
+    } catch (error) {
+      console.error('Error updating sports in Firestore:', error);
+    }
   };
 
   // Mapping sport names to images
@@ -100,7 +101,6 @@ export default function PrimarySport() {
         ))}
       </View>
       <View style={styles.buttonContainer}>
-        <Button title="Previous" onPress={handlePrevious} />
         <Button title="Next" onPress={handleNext} />
       </View>
     </ImageBackground>

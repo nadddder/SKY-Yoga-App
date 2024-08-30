@@ -1,62 +1,59 @@
-import React, { useContext } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { UserContext } from '../context/UserContext';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, Button } from 'react-native';
+import { auth, firestore } from '../firebaseSetup';
 
 export default function AccountTab() {
-  const { user } = useContext(UserContext);
+  const [firebaseUserData, setFirebaseUserData] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const formatList = (list) => {
-    return list.join(', ');
+  const fetchUserData = async () => {
+    const user = auth.currentUser;
+
+    if (user?.uid) {
+      setLoading(true);
+      console.log('Fetching data for user UID:', user.uid); // Log UID
+      try {
+        const userDoc = await firestore.collection('Users').doc(user.uid).get();
+        if (userDoc.exists) {
+          const userData = userDoc.data();
+          setFirebaseUserData(userData);
+          console.log('Fetched user data from Firebase:', userData); // Log fetched data
+        } else {
+          console.log('No user data found in Firebase for UID:', user.uid); // Log no data found
+          setFirebaseUserData(null);
+        }
+      } catch (error) {
+        console.error('Error fetching user data from Firebase:', error); // Log error
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      console.log('No user or UID available'); // Log missing UID
+    }
   };
+
+  useEffect(() => {
+    fetchUserData();
+  }, []);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.item}>
-        <Text style={styles.label}>Name: </Text>
-        <Text style={styles.value}>{user.name}</Text>
-      </Text>
-      <Text style={styles.item}>
-        <Text style={styles.label}>Email: </Text>
-        <Text style={styles.value}>{user.email}</Text>
-      </Text>
-      <Text style={styles.item}>
-        <Text style={styles.label}>Yoga Experience: </Text>
-        <Text style={styles.value}>{user.yogaExperience}</Text>
-      </Text>
-      <Text style={styles.item}>
-        <Text style={styles.label}>Primary Sports: </Text>
-        <Text style={styles.value}>
-          {user.primarySports && user.primarySports.length > 0 ? formatList(user.primarySports) : 'No sports selected'}
-        </Text>
-      </Text>
-      <Text style={styles.item}>
-        <Text style={styles.label}>Motivations: </Text>
-        <Text style={styles.value}>
-          {user.motivations && user.motivations.length > 0 ? formatList(user.motivations) : 'No motivations selected'}
-        </Text>
-      </Text>
-      <Text style={styles.item}>
-        <Text style={styles.label}>Comfortable Poses: </Text>
-        <Text style={styles.value}>
-          {user.comfortablePoses && user.comfortablePoses.length > 0 ? formatList(user.comfortablePoses) : 'No poses selected'}
-        </Text>
-      </Text>
-      <Text style={styles.item}>
-        <Text style={styles.label}>Goal Poses: </Text>
-        <Text style={styles.value}>
-          {user.goalPoses && user.goalPoses.length > 0 ? formatList(user.goalPoses) : 'No poses selected'}
-        </Text>
-      </Text>
-      <Text style={styles.item}>
-        <Text style={styles.label}>Duration: </Text>
-        <Text style={styles.value}>
-          {user.duration ? `${user.duration.hour} hour ${user.duration.minute} minutes` : 'No duration selected'}
-        </Text>
-      </Text>
-      <Text style={styles.item}>
-        <Text style={styles.label}>Mood: </Text>
-        <Text style={styles.value}>{user.mood || 'No mood selected'}</Text>
-      </Text>
+      <Text style={styles.header}>Firebase User Data:</Text>
+      {loading ? (
+        <Text>Loading Firebase user data...</Text>
+      ) : firebaseUserData ? (
+        <View>
+          <Text>Email: {firebaseUserData.email || 'Not Defined'}</Text>
+          <Text>Yoga Experience: {firebaseUserData.yogaExperience || 'Not Defined'}</Text>
+          <Text>Comfortable Poses: {firebaseUserData.comfortablePoses?.join(', ') || 'Not Defined'}</Text>
+          <Text>Goal Poses: {firebaseUserData.goalPoses?.join(', ') || 'Not Defined'}</Text>
+          <Text>Motivations: {firebaseUserData.motivations?.join(', ') || 'Not Defined'}</Text>
+        </View>
+      ) : (
+        <Text>No Firebase user data available</Text>
+      )}
+
+      <Button title="Reload Firebase Data" onPress={fetchUserData} />
     </View>
   );
 }
@@ -64,20 +61,13 @@ export default function AccountTab() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 16,
-    marginTop: 90, 
   },
-  item: {
-    flexDirection: 'row',
-    marginBottom: 10,
-  },
-  label: {
-    fontSize: 18,
+  header: {
+    fontSize: 20,
     fontWeight: 'bold',
-    color: 'black',
-  },
-  value: {
-    fontSize: 18,
-    color: 'black',
+    marginVertical: 10,
   },
 });

@@ -1,29 +1,41 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Button, ImageBackground } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { UserContext } from '../context/UserContext';
+import { firestore, auth } from '../firebaseSetup';
 import { getComfortablePoseCandidates } from '../context/getYogaPoseCandidates';
 import poseimage from '../assets/poseImage';
 import PoseScreenStyles from '../components/PoseScreenStyles';
 
 export default function InitialComfortablePoses() {
-  const { user, setUser } = useContext(UserContext);
-  const [selectedPoses, setSelectedPoses] = useState(user.comfortablePoses || []);
-
-  // Default experience level if none is selected
-  const experienceLevel = user.yogaExperience || 'intermediate1';
-
-  const poses = getComfortablePoseCandidates(experienceLevel);
+  const [selectedPoses, setSelectedPoses] = useState([]);
+  const [experienceLevel, setExperienceLevel] = useState('intermediate1');
   const navigation = useNavigation();
 
   useEffect(() => {
-    if (!user.yogaExperience) {
-      setUser(prevState => ({
-        ...prevState,
-        yogaExperience: 'intermediate1',
-      }));
-    }
-  }, [user.yogaExperience]);
+    const fetchUserExperience = async () => {
+      try {
+        const user = auth.currentUser;
+        if (user) {
+          const userDoc = await firestore.collection('Users').doc(user.uid).get();
+          if (userDoc.exists) {
+            const userData = userDoc.data();
+            setExperienceLevel(userData.yogaExperience || 'intermediate1');
+            setSelectedPoses(userData.comfortablePoses || []);
+          } else {
+            console.error('No user data found in Firestore');
+          }
+        } else {
+          console.error('No authenticated user found');
+        }
+      } catch (error) {
+        console.error('Error fetching user data from Firestore:', error.message);
+      }
+    };
+
+    fetchUserExperience();
+  }, []);
+
+  const poses = getComfortablePoseCandidates(experienceLevel);
 
   const togglePoseSelection = (pose) => {
     const updatedSelection = selectedPoses.includes(pose)
@@ -31,16 +43,24 @@ export default function InitialComfortablePoses() {
       : [...selectedPoses, pose];
 
     setSelectedPoses(updatedSelection);
-
-    // Update the user context with the selected poses
-    setUser(prevState => ({
-      ...prevState,
-      comfortablePoses: updatedSelection
-    }));
   };
 
-  const handleNext = () => {
-    navigation.navigate('InitialGoalPoses'); // Navigate to the Goal Poses screen
+  const handleNext = async () => {
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        await firestore.collection('Users').doc(user.uid).update({
+          comfortablePoses: selectedPoses,
+        });
+        console.log('Comfortable poses updated in Firestore:', selectedPoses);
+      } else {
+        console.error('No authenticated user found');
+      }
+    } catch (error) {
+      console.error('Error updating comfortable poses in Firestore:', error.message);
+    }
+
+    navigation.navigate('InitialGoalPoses');
   };
 
   const handlePrevious = () => {
@@ -66,7 +86,7 @@ export default function InitialComfortablePoses() {
             <ImageBackground 
               source={poseimage[pose]} 
               style={PoseScreenStyles.poseimage}
-              imageStyle={{resizeMode: 'cover'}} // Ensures the image fills the square container
+              imageStyle={{resizeMode: 'cover'}}
             />
           </TouchableOpacity>
         ))}

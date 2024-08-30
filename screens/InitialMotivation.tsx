@@ -1,18 +1,30 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { View, Button, StyleSheet, Text, ImageBackground } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import CustomButton from '../components/CustomButton';
-import { UserContext } from '../context/UserContext';
+import { firestore, auth } from '../firebaseSetup';
 
 export default function InitialMotivation() {
-  const { user, setUser } = useContext(UserContext);
-  const [selectedOptions, setSelectedOptions] = useState(user.motivations || []);
-
+  const [selectedOptions, setSelectedOptions] = useState([]);
   const navigation = useNavigation();
 
-  const handleNext = () => {
+  const handleNext = async () => {
     const subTexts = selectedOptions.map(option => option.split('\n')[1]);
-    setUser(prevState => ({ ...prevState, motivations: subTexts }));
+    
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        await firestore.collection('Users').doc(user.uid).update({
+          motivations: subTexts,
+        });
+        console.log('Motivations updated in Firestore:', subTexts);
+      } else {
+        console.error('No authenticated user found');
+      }
+    } catch (error) {
+      console.error('Error updating motivations in Firestore:', error.message);
+    }
+
     navigation.navigate('InitialInjuries');
   };
 
