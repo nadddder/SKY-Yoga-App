@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Image, ImageBackground, StyleSheet } from
 import Slider from '@react-native-community/slider';
 import { useNavigation } from '@react-navigation/native';
 import { generateSequence } from '../sequence_generation/generateSequence';
+import { auth, firestore } from '../firebaseSetup'; // Importing your firebase setup
 
 // Static image imports
 import wallIcon from '../assets/Images/wall-icon.png';
@@ -47,12 +48,50 @@ export default function PracticeTab() {
   const handleMoodPress = (mood) => {
     setSelectedMood(mood);
   };
-
-  const handleStartNowPress = () => {
+  
+  const handleStartNowPress = async () => {
     const durationInMinutes = selectedDuration;
     const selectedPropLabels = selectedProps.map(prop => prop.label);
     const sequence = generateSequence({ duration: durationInMinutes, props: selectedPropLabels, mood: selectedMood });
-    navigation.navigate('VideoPlayer', { sequence });
+  
+    const user = auth.currentUser; // Get the current user
+    if (user) {
+      try {
+        const userDocRef = firestore.collection('Users').doc(user.uid);
+        const userDocSnapshot = await userDocRef.get();
+  
+        // If the document doesn't exist, create it with the initial fields
+        if (!userDocSnapshot.exists) {
+          await userDocRef.set({
+            email: user.email,
+            name: user.displayName || '',
+            yogaExperience: '',
+            motivations: [],
+            comfortablePoses: [],
+            goalPoses: [],
+            history: []
+          });
+        }
+  
+        // Now, add the practice session to the history
+        const history = userDocSnapshot.data()?.history || [];
+  
+        const newEntry = {
+          practice_request: { durationInMinutes, selectedPropLabels, selectedMood },
+          generated_seq: sequence,
+        };
+  
+        history.push(newEntry);
+  
+        // Update the history in Firestore
+        await userDocRef.update({ history });
+  
+        // Navigate to VideoPlayer and pass sequence
+        navigation.navigate('VideoPlayer', { sequence });
+      } catch (error) {
+        console.error('Error storing practice request:', error);
+      }
+    }
   };
 
   return (

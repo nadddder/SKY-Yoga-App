@@ -9,7 +9,7 @@ import InitialComfortablePoses from '../screens/InitialComfortablePoses';
 import InitialGoalPoses from '../screens/InitialGoalPoses';
 import WaitPage from '../screens/WaitPage';
 import MainTabNavigator from './MainTabNavigator';
-import VideoPlayer from '../media_player/video/VideoPlayer';
+import VideoPlayer from '../media_player/VideoPlayer';
 
 const Stack = createStackNavigator();
 

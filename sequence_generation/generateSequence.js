@@ -51,6 +51,6 @@ export function generateSequence(user) {
         ]
     };
 
-    return ['BAf001','Baf002','BAf003']
+    return ['BPr035','BPr036','BPr002']
     //['BPr035', 'BPr036', 'BPr002', 'TransitionPrtoPr005', 'BPr032', 'BPr033', 'BPr034', 'Bpr038', 'TransitionPrtoAf00', 'BAf003', 'CAf002', 'BAf005', 'BAf007', 'TransitionAftoPr001', 'BPr028', 'BPr037', 'BPr010', 'TransitionPrtoAf002', 'In001'];
 }
