@@ -79,12 +79,11 @@ SKYV0/
 ├── dist/                              # Distribution files (build output)
 │
 ├── media_player/                      # Media player components
-│   ├── video/                         # Video-related components and utilities
-│   │   ├── getVideoSource.js          # Function to fetch video source
-│   │   ├── styles.js                  # Styles specific to video components
-│   │   ├── VideoControls.js           # Play/Pause, Exit, and Speed Control buttons
-│   │   ├── VideoOptions.js            # Option selection component for choosing the next video
-│   │   ├── VideoPlayer.js             # Main video player component
+│   ├── getMediaSources.js             # Function to fetch video and audio source
+│   ├── styles.js                      # Styles specific to video components
+│   ├── VideoControls.js               # Play/Pause, Exit, and Speed Control buttons
+│   ├── VideoOptions.js                # Option selection component for choosing the next video
+│   ├── VideoPlayer.js                 # Main video player component
 │
 ├── navigation/                        # Navigation configuration
 │   ├── AppNavigator.js                # Defines the stack navigation structure of the app

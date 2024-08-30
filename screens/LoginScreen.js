@@ -45,7 +45,8 @@ export default function LoginScreen() {
           yogaExperience: '',
           motivations: [],
           comfortablePoses: [],
-          goalPoses: []
+          goalPoses: [],
+          history: []
         });
   
       })
