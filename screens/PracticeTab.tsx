@@ -28,7 +28,7 @@ const propsOptions = [
 ];
 
 export default function PracticeTab() {
-  const [selectedDuration, setSelectedDuration] = useState(15); // Default to 15 minutes
+  const [selectedDuration, setSelectedDuration] = useState(35);
   const [selectedProps, setSelectedProps] = useState([]);
   const [selectedMood, setSelectedMood] = useState(null);
   const navigation = useNavigation();
@@ -99,7 +99,9 @@ export default function PracticeTab() {
       <View style={styles.container}>
         <Text style={[styles.text, styles.title]}>Select Workout</Text>
 
-        <Text style={[styles.text, styles.marginTop]}>Duration: {Math.floor(selectedDuration / 60)}h {selectedDuration % 60}m</Text>
+        <Text style={[styles.text, styles.marginTop]}>
+          Duration: {selectedDuration >= 60 ? `${Math.floor(selectedDuration / 60)}h ` : ''}{selectedDuration % 60}m {'<>'}
+        </Text>
         <Slider
           style={styles.slider}
           minimumValue={15}
@@ -111,7 +113,7 @@ export default function PracticeTab() {
           maximumTrackTintColor="#000000"
         />
 
-        <Text style={[styles.text, styles.marginTop]}>Available props</Text>
+        <Text style={[styles.text, styles.marginTop]}>Props available to you today</Text>
         <View style={styles.propsRow}>
           {propsOptions.map((prop, index) => (
             <TouchableOpacity

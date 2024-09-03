@@ -82,7 +82,6 @@ SKYV0/
 │   ├── getMediaSources.js             # Function to fetch video and audio source
 │   ├── styles.js                      # Styles specific to video components
 │   ├── VideoControls.js               # Play/Pause, Exit, and Speed Control buttons
-│   ├── VideoOptions.js                # Option selection component for choosing the next video
 │   ├── VideoPlayer.js                 # Main video player component
 │
 ├── navigation/                        # Navigation configuration
