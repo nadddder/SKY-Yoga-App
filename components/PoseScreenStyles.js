@@ -19,8 +19,8 @@ const PoseScreenStyles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   poseContainer: {
-    width: '30%',  // Adjust the width for a 3x5 grid layout
-    marginVertical: 10,
+    width: '30%',  // Width is kept the same for 3 columns
+    marginVertical: 15,  // Increase the vertical margin to reduce the number of rows
     borderWidth: 5,
     borderColor: 'transparent',
   },
