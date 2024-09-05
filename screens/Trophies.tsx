@@ -3,11 +3,9 @@ import { View, Image, StyleSheet, Text } from 'react-native';
 import { firestore } from '../firebaseSetup';
 
 const trophyCategories = [
-  { title: 'Category 1', trophies: ['trophy1', 'trophy2', 'trophy3'] },
-  { title: 'Category 2', trophies: ['trophy4', 'trophy5', 'trophy6'] },
-  { title: 'Category 3', trophies: ['trophy7', 'trophy8', 'trophy9'] },
-  { title: 'Category 4', trophies: ['trophy10', 'trophy11', 'trophy12'] },
-  { title: 'Category 5', trophies: ['trophy13', 'trophy14', 'trophy15'] },
+  { title: 'Consistency Trophies', trophies: ['trophy1', 'trophy2', 'trophy3'] },
+  { title: 'Progress Trophies', trophies: ['trophy4', 'trophy5', 'trophy6'] },
+  { title: 'Community Engagement Trophies', trophies: ['trophy7', 'trophy8', 'trophy9'] }
 ];
 
 export default function Trophies() {

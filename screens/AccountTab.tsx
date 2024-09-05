@@ -36,44 +36,54 @@ export default function AccountTab() {
     fetchUserData();
   }, []);
 
-  const renderHistoryItem = ({ item, index }) => (
-    <View style={styles.historyItem}>
-      <Text style={styles.historyText}>Session {index + 1}</Text>
-      <Text>Duration: {item.practice_request?.durationInMinutes || 'N/A'} minutes</Text>
-      <Text>Mood: {item.practice_request?.selectedMood?.label || 'N/A'}</Text>
-      <Text>Props: {item.practice_request?.selectedPropLabels?.join(', ') || 'None'}</Text>
-      <Text>Generated Sequence: {item.generated_seq?.join(', ') || 'None'}</Text>
-    </View>
-  );
-
+  const renderHistoryItem = ({ item, index }) => {
+    const generatedSequence = Array.isArray(item.generated_seq) ? item.generated_seq.join(', ') : 'None';
+    const duration = item.practice_request?.durationInMinutes || 'N/A';
+    const mood = item.practice_request?.selectedMood?.label || 'N/A';
+    const props = Array.isArray(item.practice_request?.selectedPropLabels) 
+      ? item.practice_request.selectedPropLabels.join(', ') 
+      : 'None';
+  
+    return (
+      <View style={styles.historyItem}>
+        <Text style={styles.historyText}>Session {index + 1}</Text>
+        <Text>Duration: {duration} minutes</Text>
+        <Text>Mood: {mood}</Text>
+        <Text>Props: {props}</Text>
+        <Text>Generated Sequence: {generatedSequence}</Text>
+      </View>
+    );
+  };
+  
   return (
     <View style={styles.container}>
-      <View style={styles.contentContainer}>
-        <Text style={styles.header}>Firebase User Data:</Text>
-        {loading ? (
-          <Text>Loading Firebase user data...</Text>
-        ) : firebaseUserData ? (
-          <View>
-            <Text>Email: {firebaseUserData.email || 'Not Defined'}</Text>
-            <Text>Yoga Experience: {firebaseUserData.yogaExperience || 'Not Defined'}</Text>
-            <Text>Comfortable Poses: {firebaseUserData.comfortablePoses?.join(', ') || 'Not Defined'}</Text>
-            <Text>Goal Poses: {firebaseUserData.goalPoses?.join(', ') || 'Not Defined'}</Text>
-            <Text>Motivations: {firebaseUserData.motivations?.join(', ') || 'Not Defined'}</Text>
-            <Text>History:</Text>
-            {firebaseUserData.history && firebaseUserData.history.length > 0 ? (
-              <FlatList
-                data={firebaseUserData.history}
-                renderItem={renderHistoryItem}
-                keyExtractor={(item, index) => index.toString()}
-              />
-            ) : (
-              <Text>No history available</Text>
-            )}
-          </View>
-        ) : (
-          <Text>No Firebase user data available</Text>
-        )}
+      <Text style={styles.header}>Firebase User Data:</Text>
+      {loading ? (
+        <Text>Loading Firebase user data...</Text>
+      ) : firebaseUserData ? (
+        <View style={styles.contentContainer}>
+          <Text>Email: {firebaseUserData.email || 'Not Defined'}</Text>
+          <Text>Yoga Experience: {firebaseUserData.yogaExperience || 'Not Defined'}</Text>
+          <Text>Comfortable Poses: {firebaseUserData.comfortablePoses?.join(', ') || 'Not Defined'}</Text>
+          <Text>Goal Poses: {firebaseUserData.goalPoses?.join(', ') || 'Not Defined'}</Text>
+          <Text>Motivations: {firebaseUserData.motivations?.join(', ') || 'Not Defined'}</Text>
+          <Text>History:</Text>
+          {firebaseUserData.history && firebaseUserData.history.length > 0 ? (
+            <FlatList
+              data={firebaseUserData.history}
+              renderItem={renderHistoryItem}
+              keyExtractor={(item, index) => index.toString()}
+              style={styles.flatList}
+            />
+          ) : (
+            <Text>No history available</Text>
+          )}
+        </View>
+      ) : (
+        <Text>No Firebase user data available</Text>
+      )}
 
+      <View style={styles.buttonContainer}>
         <Button title="Reload Firebase Data" onPress={fetchUserData} />
       </View>
     </View>
@@ -83,12 +93,11 @@ export default function AccountTab() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center', // Centers vertically
     padding: 16,
   },
   contentContainer: {
-    alignItems: 'flex-start', // Aligns text to the left
-    marginTop: 100, // Adds margin to the top
+    flex: 1,
+    alignItems: 'flex-start',
   },
   header: {
     fontSize: 20,
@@ -103,5 +112,12 @@ const styles = StyleSheet.create({
   },
   historyText: {
     fontWeight: 'bold',
+  },
+  flatList: {
+    flexGrow: 0,
+  },
+  buttonContainer: {
+    marginTop: 20,
+    alignSelf: 'center',
   },
 });

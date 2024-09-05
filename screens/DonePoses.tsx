@@ -4,7 +4,7 @@ import { View, Text, StyleSheet } from 'react-native';
 export default function DonePoses() {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>You can see your progress towars your goals here</Text>
+      <Text style={styles.text}>See progress towards goals or set new goals</Text>
     </View>
   );
 }
