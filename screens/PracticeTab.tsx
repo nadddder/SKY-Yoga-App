@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Image, ImageBackground, StyleSheet } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { useNavigation } from '@react-navigation/native';
-import { generateSequence } from '../sequence_generation/generateSequence';
 import { auth, firestore } from '../firebaseSetup'; // Importing your firebase setup
 
 // Static image imports
@@ -48,52 +47,64 @@ export default function PracticeTab() {
   const handleMoodPress = (mood) => {
     setSelectedMood(mood);
   };
-  
+
   const handleStartNowPress = async () => {
     const durationInMinutes = selectedDuration;
     const selectedPropLabels = selectedProps.map(prop => prop.label);
-    const sequence = generateSequence({ duration: durationInMinutes, props: selectedPropLabels, mood: selectedMood });
   
-    const user = auth.currentUser; // Get the current user
-    if (user) {
-      try {
+    try {
+      const user = auth.currentUser; 
+  
+      if (user) {
         const userDocRef = firestore.collection('Users').doc(user.uid);
         const userDocSnapshot = await userDocRef.get();
+
+        const practiceRequest = {
+          durationInMinutes,
+          selectedPropLabels,
+          selectedMood
+        };
   
-        // If the document doesn't exist, create it with the initial fields
-        if (!userDocSnapshot.exists) {
-          await userDocRef.set({
-            email: user.email,
-            name: user.displayName || '',
-            yogaExperience: '',
-            motivations: [],
-            comfortablePoses: [],
-            goalPoses: [],
-            history: []
-          });
-        }
+        // Fetch the sequence from the Firebase function
+        const response = await fetch('https://generate-sequence-zkysp7qigq-uc.a.run.app', {
+          method: 'POST', 
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            userDoc: userDocSnapshot.data(),
+            practiceRequest 
+          })
+        });
+  
+        const sequence_response = JSON.parse(await response.text());
+        console.log("Server Response:", sequence_response);
   
         // Now, add the practice session to the history
         const history = userDocSnapshot.data()?.history || [];
   
         const newEntry = {
-          practice_request: { durationInMinutes, selectedPropLabels, selectedMood },
-          generated_seq: sequence,
+          practice_request: { 
+            durationInMinutes: practiceRequest.durationInMinutes,
+            selectedMood: practiceRequest.selectedMood,
+            selectedPropLabels: practiceRequest.selectedPropLabels
+          },
+          generated_seq: Array.isArray(sequence_response.sequence) ? sequence_response.sequence : [], // Ensure it's saved as an array
         };
-  
+        
         history.push(newEntry);
+        
+        await userDocRef.update({ history });        
   
-        // Update the history in Firestore
-        await userDocRef.update({ history });
-  
-        // Navigate to VideoPlayer and pass sequence
-        navigation.navigate('VideoPlayer', { sequence });
-      } catch (error) {
-        console.error('Error storing practice request:', error);
+        // Navigate to VideoPlayer and pass sequence_response
+        navigation.navigate('VideoPlayer', { sequence_response });
       }
+    } catch (error) {
+      // Log any errors encountered during fetching or parsing
+      console.error('Error fetching or storing practice request:', error);
     }
   };
-
+  
   return (
     <ImageBackground source={require('../assets/Images/practice_background.png')} style={styles.background}>
       <View style={styles.container}>

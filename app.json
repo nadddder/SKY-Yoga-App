@@ -10,8 +10,7 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.nadddder.SKYV0"
+      "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {

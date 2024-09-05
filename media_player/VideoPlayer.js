@@ -9,11 +9,11 @@ import { sharedStyles } from './styles';
 
 export default function VideoPlayer() {
   const videoRef = useRef(null);
-  const audioRefs = useRef([]); // Array to store all audio objects
-  const preloadedMediaRef = useRef([]); // Use ref instead of state for preloaded media
+  const audioRefs = useRef([]); 
+  const preloadedMediaRef = useRef([]); 
   const navigation = useNavigation();
   const route = useRoute();
-  const { sequence } = route.params;
+  const sequence = route.params.sequence_response.sequence;
   const [mediaLoaded, setMediaLoaded] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [playbackRate, setPlaybackRate] = useState(1.0);
