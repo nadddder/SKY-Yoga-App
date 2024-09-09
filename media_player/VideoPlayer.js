@@ -1,16 +1,16 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, Text, ActivityIndicator, StyleSheet, Dimensions } from 'react-native';
+import { View, StyleSheet, Dimensions, AppState } from 'react-native';
 import { Video, Audio } from 'expo-av';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Slider from '@react-native-community/slider';
-import { getMediaSources } from './getMediaSources';
+import { getMediaSources, removeAllCachedMedia } from './getMediaSources';
 import VideoControls from './VideoControls';
 import { sharedStyles } from './styles';
 
 export default function VideoPlayer() {
   const videoRef = useRef(null);
-  const audioRefs = useRef([]); 
-  const preloadedMediaRef = useRef([]); 
+  const audioRefs = useRef([]);
+  const preloadedMediaRef = useRef([]);
   const navigation = useNavigation();
   const route = useRoute();
   const sequence = route.params.sequence_response.sequence;
@@ -19,47 +19,51 @@ export default function VideoPlayer() {
   const [playbackRate, setPlaybackRate] = useState(1.0);
   const [isPaused, setIsPaused] = useState(false);
   const [status, setStatus] = useState({});
-  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [videoDuration, setVideoDuration] = useState(0); // Per-video duration
+  const [videoElapsed, setVideoElapsed] = useState(0); // Elapsed time for the current video
+  const appState = useRef(AppState.currentState);
 
   useEffect(() => {
-    console.log("Preloading all media...");
-    preloadAllMedia(sequence);
+    preloadNextMedia(currentIndex);
+
+    const handleAppStateChange = (nextAppState) => {
+      if (nextAppState === 'background' || nextAppState === 'inactive') {
+        cleanupCachedMedia();
+        pauseAllMedia(); // Stop the media when the app is backgrounded
+      }
+      appState.current = nextAppState;
+    };
+
+    const appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
+
+    return () => {
+      appStateSubscription.remove();
+    };
   }, []);
 
-  const preloadAllMedia = async (sequence) => {
+  const preloadNextMedia = async (index) => {
+    if (index >= sequence.length) return;
+
     try {
-      const loadedMedia = [];
+      const mediaFile = sequence[index];
+      const { videoUri, audioUri } = await getMediaSources(mediaFile);
 
-      for (let i = 0; i < sequence.length; i++) {
-        const mediaFile = sequence[i];
-        const { videoUri, audioUri } = await getMediaSources(mediaFile);
-        
-        if (videoUri && audioUri) {
-          const audioRef = new Audio.Sound();
-          console.log(`Preloading video index ${i}`);
-          console.log(`Preloading audio index ${i}`);
+      if (videoUri && audioUri) {
+        const audioRef = new Audio.Sound();
+        await audioRef.loadAsync(audioUri, { shouldPlay: false });
+        await audioRef.setRateAsync(playbackRate, true);
 
-          await audioRef.loadAsync(audioUri, { shouldPlay: false });
-          await audioRef.setRateAsync(playbackRate, true);
+        audioRefs.current[index] = audioRef;
+        preloadedMediaRef.current[index] = { videoUri, audioUri };
 
-          audioRefs.current[i] = audioRef;
-          loadedMedia.push({ videoUri, audioUri });
-
-          // Update loading progress
-          setLoadingProgress(Math.round(((i + 1) / sequence.length) * 100));
-        } else {
-          console.error(`Failed to preload media at index ${i}`);
+        if (index < sequence.length - 1) {
+          preloadNextMedia(index + 1);
         }
-      }
 
-      preloadedMediaRef.current = loadedMedia; // Assign to ref
-      console.log(`Loaded media length: ${loadedMedia.length}`);
-
-      if (loadedMedia.length === sequence.length) {
-        console.log("All media preloaded. Waiting for video ref to initialize...");
-        setMediaLoaded(true);
-      } else {
-        throw new Error("Not all media files were preloaded correctly.");
+        if (index === 0) {
+          setMediaLoaded(true);
+          startPlayback(0);
+        }
       }
     } catch (error) {
       console.error("Error preloading media:", error);
@@ -67,39 +71,22 @@ export default function VideoPlayer() {
     }
   };
 
-  useEffect(() => {
-    if (mediaLoaded && videoRef.current) {
-      console.log("Video ref initialized. Starting playback...");
-      startPlayback(0);
-    }
-  }, [mediaLoaded, videoRef.current]);
-
   const startPlayback = async (index) => {
     try {
       const preloadedMedia = preloadedMediaRef.current;
-      console.log(`Attempting to start playback for index ${index}`);
-      console.log(`Preloaded media length: ${preloadedMedia.length}`);
 
-      if (!preloadedMedia || preloadedMedia.length === 0) {
-        throw new Error("preloadedMedia array is empty or not initialized.");
-      }
-
-      if (!preloadedMedia[index]) {
-        throw new Error(`No preloaded media found for index ${index}`);
-      }
-
-      if (!videoRef.current) {
-        throw new Error("videoRef is not initialized.");
-      }
+      if (!preloadedMedia[index]) throw new Error(`No preloaded media found for index ${index}`);
 
       const { videoUri } = preloadedMedia[index];
       const audioRef = audioRefs.current[index];
 
-      console.log(`Playing video index ${index} and audio index ${index}`);
+      await videoRef.current.loadAsync(videoUri, { shouldPlay: false });
+      const videoStatus = await videoRef.current.getStatusAsync();
+      setVideoDuration(videoStatus.durationMillis); // Set the duration for the current video
 
-      await videoRef.current.loadAsync(videoUri, { shouldPlay: true });
-      await videoRef.current.setRateAsync(playbackRate, true);
       await audioRef.playAsync();
+
+      await Promise.all([videoRef.current.playAsync(), audioRef.playAsync()]);
     } catch (error) {
       console.error("Error starting playback:", error);
       navigation.goBack();
@@ -107,13 +94,10 @@ export default function VideoPlayer() {
   };
 
   const handleVideoEnd = async () => {
-    console.log(`Video ended for index: ${currentIndex}`);
     if (currentIndex < sequence.length - 1) {
-      console.log('Switching to next media');
       await switchToNextMedia(currentIndex + 1);
     } else {
-      console.log('End of sequence, navigating back');
-      await unloadAllMedia();
+      await cleanupCachedMedia();
       navigation.reset({
         index: 0,
         routes: [{ name: 'MainTabNavigator', params: { screen: 'PracticeTab' } }],
@@ -130,7 +114,7 @@ export default function VideoPlayer() {
       if (audioRefs.current[currentIndex]) {
         await audioRefs.current[currentIndex].stopAsync();
       }
-      
+
       setCurrentIndex(nextIndex);
       startPlayback(nextIndex);
     } catch (error) {
@@ -139,21 +123,26 @@ export default function VideoPlayer() {
     }
   };
 
-  const unloadAllMedia = async () => {
+  const cleanupCachedMedia = async () => {
     try {
-      console.log("Unloading all media...");
+      await removeAllCachedMedia(sequence);
+    } catch (error) {
+      console.error("Error removing all cached media files:", error);
+    }
+  };
+
+  const pauseAllMedia = async () => {
+    try {
       if (videoRef.current) {
-        await videoRef.current.stopAsync();
-        await videoRef.current.unloadAsync();
+        await videoRef.current.pauseAsync();
       }
       for (let i = 0; i < audioRefs.current.length; i++) {
         if (audioRefs.current[i] && audioRefs.current[i]._loaded) {
-          await audioRefs.current[i].stopAsync();
-          await audioRefs.current[i].unloadAsync();
+          await audioRefs.current[i].pauseAsync();
         }
       }
     } catch (error) {
-      console.error("Error unloading media:", error);
+      console.error("Error pausing all media:", error);
     }
   };
 
@@ -161,26 +150,23 @@ export default function VideoPlayer() {
     setIsPaused(!isPaused);
     const audioRef = audioRefs.current[currentIndex];
     if (isPaused) {
-      console.log('Resuming playback');
       await videoRef.current.playAsync();
       await audioRef.playAsync();
     } else {
-      console.log('Pausing playback');
       await videoRef.current.pauseAsync();
       await audioRef.pauseAsync();
     }
   };
 
   const handleExitPress = async () => {
-    console.log('Exiting, pausing and unloading media');
-    await unloadAllMedia();
+    await pauseAllMedia();
+    await cleanupCachedMedia();
     navigation.goBack();
   };
 
   const handleSpeedChange = async (newSpeed) => {
     setPlaybackRate(newSpeed);
     try {
-      console.log(`Changing playback speed to: ${newSpeed}`);
       if (videoRef.current) {
         await videoRef.current.setRateAsync(newSpeed, true);
       }
@@ -193,27 +179,12 @@ export default function VideoPlayer() {
   };
 
   const handleSliderValueChange = async (value) => {
-    console.log(`Slider value changed to: ${value}`);
-    try {
-      if (videoRef.current) {
-        await videoRef.current.setPositionAsync(value);
-      }
-      if (audioRefs.current[currentIndex]._loaded) {
-        await audioRefs.current[currentIndex].setPositionAsync(value);
-      }
-    } catch (error) {
-      console.error('Error setting position:', error);
-    }
+    const newPosition = value * videoDuration; // Calculate the position in the current video
+    await videoRef.current.setPositionAsync(newPosition);
+    const audioRef = audioRefs.current[currentIndex];
+    await audioRef.setPositionAsync(newPosition);
+    setVideoElapsed(newPosition); // Update the elapsed time for the current video
   };
-
-  if (!mediaLoaded) {
-    return (
-      <View style={sharedStyles.container}>
-        <ActivityIndicator size="large" color="#ffffff" />
-        <Text style={styles.loadingText}>Loading {loadingProgress}%</Text>
-      </View>
-    );
-  }
 
   return (
     <View style={sharedStyles.container}>
@@ -223,9 +194,12 @@ export default function VideoPlayer() {
         resizeMode="cover"
         isMuted={true}
         onPlaybackStatusUpdate={(status) => {
-          setStatus(status);
-          if (status.didJustFinish) {
-            handleVideoEnd();
+          if (status.isLoaded && status.durationMillis) {
+            setVideoElapsed(status.positionMillis);
+            setVideoDuration(status.durationMillis);
+            if (status.didJustFinish) {
+              handleVideoEnd();
+            }
           }
         }}
       />
@@ -233,8 +207,8 @@ export default function VideoPlayer() {
         <Slider
           style={styles.slider}
           minimumValue={0}
-          maximumValue={status.durationMillis || 0}
-          value={status.positionMillis || 0}
+          maximumValue={1}
+          value={videoDuration > 0 ? videoElapsed / videoDuration : 0} // Per-video progress
           onSlidingComplete={handleSliderValueChange}
           minimumTrackTintColor="#76c7c0"
           maximumTrackTintColor="#000000"
@@ -253,11 +227,6 @@ export default function VideoPlayer() {
 }
 
 const styles = StyleSheet.create({
-  loadingText: {
-    color: '#ffffff',
-    marginTop: 10,
-    fontSize: 18,
-  },
   progressBarContainer: {
     position: 'absolute',
     bottom: Dimensions.get('window').width * 0.8,
