@@ -54,7 +54,7 @@ export default function PracticeTab() {
   
     try {
       const user = auth.currentUser; 
-  
+      
       if (user) {
         const userDocRef = firestore.collection('Users').doc(user.uid);
         const userDocSnapshot = await userDocRef.get();
@@ -65,11 +65,15 @@ export default function PracticeTab() {
           selectedMood
         };
   
-        // Fetch the sequence from the Firebase function
+        // Get the Firebase ID token from the current user
+        const idToken = await user.getIdToken();
+
+        // Fetch the sequence from the Firebase function with the ID token in the headers
         const response = await fetch('https://generate-sequence-zkysp7qigq-uc.a.run.app', {
           method: 'POST', 
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}` // Include the ID token here
           },
           body: JSON.stringify({
             userDoc: userDocSnapshot.data(),

@@ -73,8 +73,13 @@ SKYV0/
 │   ├── PoseScreenStyles.js            # Centralized style definitions for pose selection screens
 │   ├── ProgressBar.js                 # Progress bar component (currently unused)
 │
-├── context/                           # Context API for global state management
-│   ├── getYogaPoseCandidates.js       # Function that dynamically generates a list of yoga poses based on the user's selected experience level.
+├── functions/                         # Firebase Cloud Functions folder
+│   ├── main.py                        # Main Python file for Firebase Functions
+│   ├── requirements.txt               # Python dependencies file for functions
+│   ├── venv/                          # Python virtual environment 
+│   │   └── (Virtual environment files)
+│   ├── .gitignore                     # Git ignore file to exclude unnecessary files (e.g., venv, node_modules)
+│   └── __pycache__/                   # Python cache files
 │
 ├── dist/                              # Distribution files (build output)
 │
