@@ -4,6 +4,12 @@ firebaseConfig.js
 # Videos
 assets/videos/
 
+# Local Core algorithm
+Local Function
+
+# Assistant rules
+Assistant_rules.txt
+
 # dependencies
 node_modules/
 

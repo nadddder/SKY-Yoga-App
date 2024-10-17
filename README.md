@@ -2,36 +2,39 @@
 
 ## Current State Summary of the App
 
-The SKY Yoga App focuses on delivering personalized yoga experiences through structured user data collection and cloud-based video streaming. User data, gathered via questionnaires setts the foundation for tailored yoga sessions. The app aims to expand personalization features and enhance user engagement in future iterations.
+The SKY Yoga App is designed to deliver personalized yoga experiences by combining user-specific data collection, AI-powered sequence generation, and cloud-based video streaming. Users provide key information about their yoga experience, goals, and physical condition to create dynamic, customized yoga routines. The app also incorporates interactive features and real-time feedback to enhance the overall experience.
 
 ## Goal of the App to Achieve MVP
 
 The Minimum Viable Product (MVP) for the SKY Yoga App aims to deliver a comprehensive and personalized yoga experience by collecting user-specific data and generating customized yoga routines. The key objectives include:
 
-1. **User Authentication:** Implement secure user authentication with options for social media login (Google, Facebook, Apple, Strava). Ensure password recovery functionality is also available.
-2. **Data Collection:** Gather comprehensive user data through an intuitive and engaging initial questionnaire, including primary sports, yoga experience, motivations, and injuries. Continue collecting ongoing progress data to refine personalization over time.
-3. **Personalized Yoga Sessions:** Use AI-driven algorithms to generate personalized yoga routines tailored to each user's profile, goals, and physical condition. The content should adapt dynamically as the user progresses.
+1. **User Authentication and Data Security:** Implement secure user authentication with options for social media login (Google, Facebook, Apple, Strava). Ensure password recovery functionality is also available. Ensure compliance with global data protection regulations such as GDPR and CCPA through data encryption and secure storage.
+2. **Data Collection:** Gather comprehensive user data through an intuitive and engaging initial questionnaire, yoga experience, motivations, and injuries. Continue collecting ongoing progress data to refine personalization over time.
+3. **Personalized Yoga Sessions:** Use AI-driven algorithms to generate personalized yoga routines tailored to each user's profile, history, goals, and physical condition. The content should adapt dynamically as the user progresses.
 4. **User Experience Enhancement:** Refine the user interface and overall experience based on user feedback, ensuring seamless navigation, clear visuals, and an engaging interaction design. Provide an intuitive view of user progress over time to keep users motivated and informed.
 5. **Yoga Video Integration:** Integrate high-quality yoga video content, including tailored routines for specific needs (e.g., injury recovery, flexibility, strength building). Ensure content is easily accessible and relevant to user preferences.
-6. **Scalability and Performance:** Ensure the app can handle a growing user base without compromising performance. Optimize the backend and frontend to deliver a smooth and responsive experience across all supported devices.
+6. **Scalability and Performance:** Ensure the app can handle a growing user base without compromising performance. Optimize the backend and frontend to deliver a smooth and responsive experience across all supported devices. Implement continuous testing (unit, integration, and user acceptance testing) to guarantee a smooth, high-quality experience.
 7. **Payment Integration:** Implement a payment system that supports various options (e.g., subscriptions, one-time purchases). Ensure the payment process is secure, seamless, and integrated into the app's user flow.
 8. **Testing and Optimization:** Conduct thorough testing, including unit, integration, and user acceptance testing, to ensure the app functions smoothly and meets user expectations. Continuously optimize the app based on testing results and user feedback.
 
 ## Project Overview
 
-### Current Functionality
+### Functionality
 
-The app guides users through a series of pages where they can input information regarding their yoga experience, motivations, injuries, and yoga poses they are comfortable with and want to master. All of this information is stored in Firestore.
+The app guides users through a series of onboarding pages where they can input information regarding their motivations, injuries, and yoga poses they are comfortable with and want to master. All of this information is stored in Firestore.
 
-The app uses React Navigation to manage both stack and tab navigation. Development is done on Windows using Expo, targeting iOS.
+Returning user (or after onboarding) will be directed to main tabs where they can choose(from history or new) workout to see in media player, track progress, and access account details.
+
+The app uses React Navigation to manage both stack and tab navigation. Development is done on Windows using Expo, targeting iOS and Android.
 
 ### Firebase Integration
 
-Firebase is being used to manage authentication, cloud storage, and user data. The following Firebase services are integrated into the app:
+Firebase is being used to manage authentication, cloud storage, run functions, and store user data. The following Firebase services are integrated into the app:
 
 1. **Firebase Authentication**: Handles user authentication.
 2. **Firebase Firestore**: Stores user profiles, preferences, and progress data.
 3. **Firebase Storage**: Hosts and streams yoga videos.
+4. **Firebase Functions**: Core algorithm that determines yoga sequences
 
 ### Directory Structure
 
@@ -73,8 +76,13 @@ SKYV0/
 │   ├── PoseScreenStyles.js            # Centralized style definitions for pose selection screens
 │   ├── ProgressBar.js                 # Progress bar component (currently unused)
 │
-├── context/                           # Context API for global state management
-│   ├── getYogaPoseCandidates.js       # Function that dynamically generates a list of yoga poses based on the user's selected experience level.
+├── functions/                         # Firebase Cloud Functions folder
+│   ├── main.py                        # Main Python file for Firebase Functions
+│   ├── requirements.txt               # Python dependencies file for functions
+│   ├── venv/                          # Python virtual environment 
+│   │   └── (Virtual environment files)
+│   ├── .gitignore                     # Git ignore file to exclude unnecessary files (e.g., venv, node_modules)
+│   └── __pycache__/                   # Python cache files
 │
 ├── dist/                              # Distribution files (build output)
 │

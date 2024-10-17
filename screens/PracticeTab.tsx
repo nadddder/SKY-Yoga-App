@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Image, ImageBackground, StyleSheet } from
 import Slider from '@react-native-community/slider';
 import { useNavigation } from '@react-navigation/native';
 import { auth, firestore } from '../firebaseSetup'; // Importing your firebase setup
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 // Static image imports
 import wallIcon from '../assets/Images/wall-icon.png';
@@ -54,7 +55,7 @@ export default function PracticeTab() {
   
     try {
       const user = auth.currentUser; 
-  
+      
       if (user) {
         const userDocRef = firestore.collection('Users').doc(user.uid);
         const userDocSnapshot = await userDocRef.get();
@@ -65,11 +66,15 @@ export default function PracticeTab() {
           selectedMood
         };
   
-        // Fetch the sequence from the Firebase function
+        // Get the Firebase ID token from the current user
+        const idToken = await user.getIdToken();
+
+        // Fetch the sequence from the Firebase function with the ID token in the headers
         const response = await fetch('https://generate-sequence-zkysp7qigq-uc.a.run.app', {
           method: 'POST', 
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}` // Include the ID token here
           },
           body: JSON.stringify({
             userDoc: userDocSnapshot.data(),
@@ -179,12 +184,12 @@ const styles = StyleSheet.create({
     marginTop: 50,
   },
   text: {
-    fontSize: 24,
+    fontSize: wp('5%'), // Adjust text size based on screen width
     textAlign: 'center',
     marginBottom: 10,
   },
   title: {
-    fontSize: 30, // Larger font for title
+    fontSize: wp('6.5%'), // Larger font for title based on screen width
     fontWeight: 'bold',
   },
   marginTop: {
@@ -211,13 +216,13 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   propImage: {
-    width: 50,
-    height: 50,
+    width: wp('12%'), // Scale prop images based on screen width
+    height: wp('12%'),
     resizeMode: 'contain',
   },
   propLabel: {
     marginTop: 5,
-    fontSize: 14,
+    fontSize: wp('4%'), // Scale prop label size
     textAlign: 'center',
   },
   moodBar: {
@@ -240,11 +245,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#76c7c0',
   },
   moodText: {
-    fontSize: 18,
+    fontSize: wp('4.5%'), // Adjust mood text size
     color: 'black',
   },
   moodSubtext: {
-    fontSize: 14,
+    fontSize: wp('3.5%'), // Adjust mood subtext size
     color: 'gray',
   },
   buttonContainer: {
@@ -264,7 +269,7 @@ const styles = StyleSheet.create({
     marginTop: 100,
   },
   startNowButtonText: {
-    fontSize: 18,
+    fontSize: wp('4.5%'), // Adjust button text size
     color: 'white',
   },
 });
