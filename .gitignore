@@ -8,7 +8,7 @@ assets/videos/
 Local Function
 
 # Assistant rules
-Assitant_rules.txt
+assistant_rules.txt
 
 # dependencies
 node_modules/
