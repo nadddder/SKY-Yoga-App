@@ -80,7 +80,7 @@ export default function VideoPlayer() {
       const { videoUri } = preloadedMedia[index];
       const audioRef = audioRefs.current[index];
 
-      await videoRef.current.loadAsync(videoUri, { shouldPlay: false });
+      await videoRef.current.loadAsync(videoUri, { shouldPlay: false, isMuted: true });
       const videoStatus = await videoRef.current.getStatusAsync();
       setVideoDuration(videoStatus.durationMillis); // Set the duration for the current video
 
@@ -192,7 +192,7 @@ export default function VideoPlayer() {
         ref={videoRef}
         style={sharedStyles.video}
         resizeMode="cover"
-        isMuted={true}
+        isMuted={true} 
         onPlaybackStatusUpdate={(status) => {
           if (status.isLoaded && status.durationMillis) {
             setVideoElapsed(status.positionMillis);
